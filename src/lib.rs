@@ -8,7 +8,7 @@ extern crate test;
 
 mod string_utils;
 mod tests;
-mod benchmarks;
+mod benches;
 
 use std::cmp::{min, max};
 use std::mem;

@@ -3,3 +3,10 @@
 name = "rope-rs"
 version = "0.1.0"
 authors = ["Nathan Vegdahl <cessen@cessen.com>"]
+description = "Mutable text ropes for Rust"
+#documentation = "..."
+#homepage = "..."
+repository = "https://github.com/cessen/rope-rs"
+readme = "readme.md"
+license = "CC0-1.0"
+keywords = ["rope", "text"]

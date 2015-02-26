@@ -1,6 +1,6 @@
 [package]
 
-name = "rope-rs"
+name = "ropey"
 version = "0.1.0"
 authors = ["Nathan Vegdahl <cessen@cessen.com>"]
 description = "Mutable text ropes for Rust"

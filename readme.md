@@ -1,6 +1,6 @@
-# rope-rs
+# Ropey
 
-Rope-rs provides a unicode-aware implementation of mutable text ropes for Rust.  It does not currently provide the persistant data structure variant of ropes.  It is essentially intended as an alternative to Rust strings, where the contained text is expected to be large and frequently modified.
+Ropey provides a unicode-aware implementation of mutable text ropes for Rust.  It does not currently provide the persistant data structure variant of ropes.  It is essentially intended as an alternative to Rust strings, where the contained text is expected to be large and frequently modified.
 
 ## Goals
 
@@ -10,6 +10,6 @@ Rope-rs provides a unicode-aware implementation of mutable text ropes for Rust. 
 
 ## Current Status
 
-Rope-rs currently meets two of the above goals: it is line aware and can handle manipulation of very large texts efficiently.
+Ropey currently meets two of the above goals: it is line aware and can handle manipulation of very large texts efficiently.
 
 Its unicode support is not yet where it needs to be.  It currently only indexes by graphemes, and there are corner-cases even for graphemes that are not handled correctly yet.

@@ -21,8 +21,6 @@ use string_utils::{
     remove_text_between_grapheme_indices,
     split_string_at_grapheme_index,
     is_line_ending,
-    LineEnding,
-    str_to_line_ending,
 };
 
 
@@ -1112,18 +1110,6 @@ impl<'a> RopeSlice<'a> {
     
     pub fn grapheme_at_index(&self, index: usize) -> &'a str {
         &self.rope[self.start+index]
-    }
-    
-    
-    /// Convenience function for when the slice represents a line
-    pub fn ending(&self) -> LineEnding {
-        if self.grapheme_count() > 0 {
-            let g = self.grapheme_at_index(self.grapheme_count() - 1);
-            return str_to_line_ending(g);
-        }
-        else {
-            return LineEnding::None;
-        }
     }
     
     

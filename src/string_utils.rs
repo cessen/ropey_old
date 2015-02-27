@@ -57,18 +57,20 @@ pub fn grapheme_count_is_less_than(text: &str, n: usize) -> bool {
     return true;
 }
 
-pub fn grapheme_and_line_ending_count(text: &str) -> (usize, usize) {
-    let mut grapheme_count = 0;
-    let mut line_ending_count = 0;
+pub fn char_grapheme_line_ending_count(text: &str) -> (usize, usize, usize) {
+    let mut cc = 0;
+    let mut gc = 0;
+    let mut lec = 0;
     
     for g in text.graphemes(true) {
-        grapheme_count += 1;
+        cc += char_count(g);
+        gc += 1;
         if is_line_ending(g) {
-            line_ending_count += 1;
+            lec += 1;
         }
     }
     
-    return (grapheme_count, line_ending_count);
+    return (cc, gc, lec);
 }
 
 pub fn char_pos_to_byte_pos(text: &str, pos: usize) -> usize {

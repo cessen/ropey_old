@@ -13,6 +13,10 @@ fn new_1() {
     let rope = Rope::new();
     let mut iter = rope.grapheme_iter();
     
+    assert_eq!(rope.char_count(), 0);
+    assert_eq!(rope.grapheme_count(), 0);
+    assert_eq!(rope.line_count(), 1);
+    
     assert_eq!(None, iter.next());
 }
 
@@ -21,6 +25,10 @@ fn new_1() {
 fn new_2() {
     let rope = Rope::from_str("Hello world!");
     let mut iter = rope.grapheme_iter();
+    
+    assert_eq!(rope.char_count(), 12);
+    assert_eq!(rope.grapheme_count(), 12);
+    assert_eq!(rope.line_count(), 1);
     
     assert_eq!(Some("H"), iter.next());
     assert_eq!(Some("e"), iter.next());
@@ -44,6 +52,10 @@ fn new_3() {
     let rope = Rope::from_string(s);
     let mut iter = rope.grapheme_iter();
     
+    assert_eq!(rope.char_count(), 12);
+    assert_eq!(rope.grapheme_count(), 12);
+    assert_eq!(rope.line_count(), 1);
+    
     assert_eq!(Some("H"), iter.next());
     assert_eq!(Some("e"), iter.next());
     assert_eq!(Some("l"), iter.next());
@@ -64,13 +76,31 @@ fn new_3() {
 fn new_4() {
     let rope = Rope::from_str(String::from_utf8(vec!['c' as u8; 1 + MAX_NODE_SIZE * 53]).unwrap().as_slice());
     
+    assert_eq!(rope.char_count(), 1 + MAX_NODE_SIZE * 53);
+    assert_eq!(rope.grapheme_count(), 1 + MAX_NODE_SIZE * 53);
+    assert_eq!(rope.line_count(), 1);
+    
     assert!(rope.is_balanced());
+}
+
+
+#[test]
+fn counts() {
+    let rope = Rope::from_str("Hello\u{000D}\u{000A}world!");
+    
+    assert_eq!(rope.char_count(), 13);
+    assert_eq!(rope.grapheme_count(), 12);
+    assert_eq!(rope.line_count(), 2);
 }
 
 
 #[test]
 fn index() {
     let rope = Rope::from_str("Hel世界lo world!");
+    
+    assert_eq!(rope.char_count(), 14);
+    assert_eq!(rope.grapheme_count(), 14);
+    assert_eq!(rope.line_count(), 1);
     
     assert_eq!("H", &rope[0]);
     assert_eq!("界", &rope[4]);
@@ -1093,6 +1123,7 @@ fn rebalance_1() {
     
     let mut rope = Rope {
         data: RopeData::Branch(Box::new(left), Box::new(right)),
+        char_count_: 0,
         grapheme_count_: 0,
         line_ending_count: 0,
         tree_height: 1,
@@ -1118,6 +1149,7 @@ fn rebalance_2() {
     
     let mut rope = Rope {
         data: RopeData::Branch(Box::new(left), Box::new(right)),
+        char_count_: 0,
         grapheme_count_: 0,
         line_ending_count: 0,
         tree_height: 1,
@@ -1143,6 +1175,7 @@ fn rebalance_3() {
     
     let mut rope = Rope {
         data: RopeData::Branch(Box::new(left), Box::new(right)),
+        char_count_: 0,
         grapheme_count_: 0,
         line_ending_count: 0,
         tree_height: 1,
@@ -1168,6 +1201,7 @@ fn rebalance_4() {
     
     let mut rope = Rope {
         data: RopeData::Branch(Box::new(left), Box::new(right)),
+        char_count_: 0,
         grapheme_count_: 0,
         line_ending_count: 0,
         tree_height: 1,

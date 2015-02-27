@@ -15,7 +15,8 @@ use std::mem;
 use std::str::Graphemes;
 use std::ops::Index;
 use string_utils::{
-    grapheme_and_line_ending_count,
+    char_count,
+    char_grapheme_line_ending_count,
     grapheme_count_is_less_than,
     insert_text_at_grapheme_index,
     remove_text_between_grapheme_indices,
@@ -33,6 +34,7 @@ pub const MAX_NODE_SIZE: usize = MIN_NODE_SIZE * 2;
 #[derive(Debug)]
 pub struct Rope {
     data: RopeData,
+    char_count_: usize,
     grapheme_count_: usize,
     line_ending_count: usize,
     tree_height: u32,
@@ -51,6 +53,7 @@ impl Rope {
     pub fn new() -> Rope {
         Rope {
             data: RopeData::Leaf(String::new()),
+            char_count_: 0,
             grapheme_count_: 0,
             line_ending_count: 0,
             tree_height: 1,
@@ -67,10 +70,12 @@ impl Rope {
             // Get the next chunk of the string to add
             let mut byte_i = 0;
             let mut le_count = 0;
+            let mut c_count = 0;
             let mut g_count = 0;
             for (bi, g) in s1.grapheme_indices(true) {
                 byte_i = bi + g.len();
                 g_count += 1;
+                c_count += char_count(g);
                 if is_line_ending(g) {
                     le_count += 1;
                 }
@@ -86,6 +91,7 @@ impl Rope {
             // Add chunk
             rope_stack.push(Rope {
                 data: RopeData::Leaf(String::from_str(chunk)),
+                char_count_: c_count,
                 grapheme_count_: g_count,
                 line_ending_count: le_count,
                 tree_height: 1,
@@ -100,8 +106,10 @@ impl Rope {
                     let h = max(left.tree_height, right.tree_height) + 1;
                     let lc = left.line_ending_count + right.line_ending_count;
                     let gc = left.grapheme_count_ + right.grapheme_count_;
+                    let cc = left.char_count_ + right.char_count_;
                     rope_stack.push(Rope {
                         data: RopeData::Branch(left, right),
+                        char_count_: cc,
                         grapheme_count_: gc,
                         line_ending_count: lc,
                         tree_height: h,
@@ -133,10 +141,11 @@ impl Rope {
         return rope;
     }
     
-    pub fn from_str_with_count(s: &str, g_count: usize, le_count: usize) -> Rope {
+    pub fn from_str_with_count(s: &str, c_count: usize, g_count: usize, le_count: usize) -> Rope {
         if g_count <= MAX_NODE_SIZE {
             Rope {
                 data: RopeData::Leaf(String::from_str(s)),
+                char_count_: c_count,
                 grapheme_count_: g_count,
                 line_ending_count: le_count,
                 tree_height: 1,
@@ -151,6 +160,10 @@ impl Rope {
     pub fn from_string(s: String) -> Rope {
         // TODO: special case short strings?
         Rope::from_str(s.as_slice())
+    }
+    
+    pub fn char_count(&self) -> usize {
+        return self.char_count_;
     }
     
     pub fn grapheme_count(&self) -> usize {
@@ -590,13 +603,15 @@ impl Rope {
     fn update_stats(&mut self) {
         match self.data {
             RopeData::Leaf(ref text) => {
-                let (gc, lec) = grapheme_and_line_ending_count(text);
+                let (cc, gc, lec) = char_grapheme_line_ending_count(text);
+                self.char_count_ = cc;
                 self.grapheme_count_ = gc;
                 self.line_ending_count = lec;
                 self.tree_height = 1;
             },
             
             RopeData::Branch(ref left, ref right) => {
+                self.char_count_ = left.char_count_ + right.char_count_;
                 self.grapheme_count_ = left.grapheme_count_ + right.grapheme_count_;
                 self.line_ending_count = left.line_ending_count + right.line_ending_count;
                 self.tree_height = max(left.tree_height, right.tree_height) + 1;

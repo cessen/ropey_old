@@ -426,13 +426,13 @@ fn to_string() {
 
 
 #[test]
-fn split_1() {
+fn split_at_grapheme_index_1() {
     let mut rope1 = Rope::from_str("Hello there good people of the world!");
     
     //let mut f1 = BufferedWriter::new(File::create(&Path::new("yar1.gv")).unwrap());
     //f1.write_str(rope1.to_graphviz().as_slice());
             
-    let rope2 = rope1.split(18);
+    let rope2 = rope1.split_at_grapheme_index(18);
 
     //let mut f2 = BufferedWriter::new(File::create(&Path::new("yar2.gv")).unwrap());
     //f2.write_str(rope1.to_graphviz().as_slice());
@@ -446,13 +446,13 @@ fn split_1() {
 
 
 #[test]
-fn split_2() {
+fn split_at_grapheme_index_2() {
     let mut rope1 = Rope::from_str("Hello there good people of the world!");
     
     //let mut f1 = BufferedWriter::new(File::create(&Path::new("yar1.gv")).unwrap());
     //f1.write_str(rope1.to_graphviz().as_slice());
             
-    let rope2 = rope1.split(31);
+    let rope2 = rope1.split_at_grapheme_index(31);
 
     //let mut f2 = BufferedWriter::new(File::create(&Path::new("yar2.gv")).unwrap());
     //f2.write_str(rope1.to_graphviz().as_slice());
@@ -466,13 +466,13 @@ fn split_2() {
 
 
 #[test]
-fn split_3() {
+fn split_at_grapheme_index_3() {
     let mut rope1 = Rope::from_str("Hello there good people of the world!");
     
     //let mut f1 = BufferedWriter::new(File::create(&Path::new("yar1.gv")).unwrap());
     //f1.write_str(rope1.to_graphviz().as_slice());
             
-    let rope2 = rope1.split(5);
+    let rope2 = rope1.split_at_grapheme_index(5);
 
     //let mut f2 = BufferedWriter::new(File::create(&Path::new("yar2.gv")).unwrap());
     //f2.write_str(rope1.to_graphviz().as_slice());
@@ -486,9 +486,9 @@ fn split_3() {
 
 
 #[test]
-fn split_4() {
+fn split_at_grapheme_index_4() {
     let mut rope1 = Rope::from_str("Hello there good people of the world!");
-    let rope2 = rope1.split(37);
+    let rope2 = rope1.split_at_grapheme_index(37);
     
     assert!(rope1.is_balanced());
     assert!(rope2.is_balanced());
@@ -498,9 +498,9 @@ fn split_4() {
 
 
 #[test]
-fn split_5() {
+fn split_at_grapheme_index_5() {
     let mut rope1 = Rope::from_str("Hello there good people of the world!");
-    let rope2 = rope1.split(0);
+    let rope2 = rope1.split_at_grapheme_index(0);
     
     assert!(rope1.is_balanced());
     assert!(rope2.is_balanced());

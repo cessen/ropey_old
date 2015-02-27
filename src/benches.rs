@@ -248,18 +248,18 @@ fn append_3(b: &mut Bencher) {
 
 
 #[bench]
-fn split_1(b: &mut Bencher) {
+fn split_at_grapheme_index_1(b: &mut Bencher) {
     b.iter(|| {
         let mut left = Rope::from_str(String::from_utf8(vec!['c' as u8; 7649]).unwrap().as_slice());
-        let _ = left.split(3617);
+        let _ = left.split_at_grapheme_index(3617);
     });
 }
 
 
 #[bench]
-fn split_2(b: &mut Bencher) {
+fn split_at_grapheme_index_2(b: &mut Bencher) {
     b.iter(|| {
         let mut left = Rope::from_str(String::from_utf8(vec!['c' as u8; 7649]).unwrap().as_slice());
-        let _ = left.split(263);
+        let _ = left.split_at_grapheme_index(263);
     });
 }

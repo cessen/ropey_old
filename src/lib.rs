@@ -175,6 +175,27 @@ impl Rope {
     }
     
     
+    /// Returns the number of graphemes between char indices pos_a and pos_b.
+    /// This is not as simple as a subtraction of char_index_to_grapheme_index()
+    /// calls, because the char indices may split graphemes.
+    pub fn grapheme_count_in_char_range(&self, pos_a: usize, pos_b: usize) -> usize {
+        unimplemented!()
+    }
+    
+    
+    /// Returns the index of the grapheme that the given char index is a
+    /// part of.
+    pub fn char_index_to_grapheme_index(&self, pos: usize) -> usize {
+        unimplemented!()
+    }
+    
+    
+    /// Returns the beginning char index of the given grapheme index.
+    pub fn grapheme_index_to_char_index(&self, pos: usize) -> usize {
+        unimplemented!()
+    }
+    
+    
     /// Returns the grapheme index at the start of the given line index.
     pub fn line_index_to_grapheme_index(&self, li: usize) -> usize {
         // Bounds check
@@ -285,8 +306,25 @@ impl Rope {
     }
     
     
+    pub fn char_at_index(&self, index: usize) -> char {
+        unimplemented!()
+    }
+    
+    
     pub fn grapheme_at_index<'a>(&'a self, index: usize) -> &'a str {
         &self[index]
+    }
+    
+    
+    /// Inserts the given text at the given char index.
+    pub fn insert_text_at_char_index(&mut self, text: &str, pos: usize) {
+        unimplemented!()
+    }
+    
+    
+    /// Removes the text between the given char indices.
+    pub fn remove_text_between_char_indices(&mut self, pos_a: usize, pos_b: usize) {
+        unimplemented!()
     }
     
     
@@ -341,7 +379,7 @@ impl Rope {
             else {
                 // Split the leaf node at the insertion point
                 let mut node_l = Rope::new();
-                let node_r = self.split(pos);
+                let node_r = self.split_at_grapheme_index(pos);
                 mem::swap(self, &mut node_l);
                 
                 // Set the inserted text as the main node
@@ -396,12 +434,23 @@ impl Rope {
         self.rebalance();
     }
     
+    
+    /// Splits a rope into two pieces from the given char index.
+    /// The first piece remains in this rope, the second piece is returned
+    /// as a new rope.
+    /// I _think_ this runs in O(log N) time, but this needs more analysis to
+    /// be sure.  It is at least sublinear.
+    pub fn split_at_char_index(&mut self, pos: usize) -> Rope {
+        unimplemented!()
+    }
+    
+    
     /// Splits a rope into two pieces from the given grapheme index.
     /// The first piece remains in this rope, the second piece is returned
     /// as a new rope.
     /// I _think_ this runs in O(log N) time, but this needs more analysis to
     /// be sure.  It is at least sublinear.
-    pub fn split(&mut self, pos: usize) -> Rope {
+    pub fn split_at_grapheme_index(&mut self, pos: usize) -> Rope {
         let mut left = Rope::new();
         let mut right = Rope::new();
         
@@ -410,6 +459,7 @@ impl Rope {
         mem::swap(self, &mut left);
         return right;
     }
+    
 
     /// Appends another rope to the end of this one, consuming the other rope.
     /// Runs in O(log N) time.
@@ -483,6 +533,12 @@ impl Rope {
     }
     
     
+    // TODO:
+    // char_iter()
+    // char_iter_at_index()
+    // char_iter_between_indices()
+    
+    
     /// Creates an iterator at the first grapheme of the rope
     pub fn grapheme_iter<'a>(&'a self) -> RopeGraphemeIter<'a> {
         self.grapheme_iter_at_index(0)
@@ -542,6 +598,8 @@ impl Rope {
     }
     
     
+    // TODO: change pos_a and pos_b to be char indices instead of grapheme
+    // indices
     pub fn slice<'a>(&'a self, pos_a: usize, pos_b: usize) -> RopeSlice<'a> {
         let a = pos_a;
         let b = min(self.grapheme_count_, pos_b);
@@ -572,7 +630,7 @@ impl Rope {
     fn to_graphviz_recursive(&self, text: &mut String, name: String) {
         match self.data {
             RopeData::Leaf(_) => {
-                text.push_str(format!("{} [label=\"gc={}\\nlec={}\"];\n", name, self.grapheme_count_, self.line_ending_count).as_slice());
+                text.push_str(format!("{} [label=\"cc={}\\ngc={}\\nlec={}\"];\n", name, self.char_count_, self.grapheme_count_, self.line_ending_count).as_slice());
             },
             
             RopeData::Branch(ref left, ref right) => {
@@ -580,7 +638,7 @@ impl Rope {
                 let mut rname = name.clone();
                 lname.push('l');
                 rname.push('r');
-                text.push_str(format!("{} [shape=box, label=\"h={}\\ngc={}\\nlec={}\"];\n", name, self.tree_height, self.grapheme_count_, self.line_ending_count).as_slice());
+                text.push_str(format!("{} [shape=box, label=\"h={}\\ncc={}\\ngc={}\\nlec={}\"];\n", name, self.tree_height, self.char_count_, self.grapheme_count_, self.line_ending_count).as_slice());
                 text.push_str(format!("{} -> {{ {} {} }};\n", name, lname, rname).as_slice());
                 left.to_graphviz_recursive(text, lname);
                 right.to_graphviz_recursive(text, rname);
@@ -620,6 +678,7 @@ impl Rope {
     }
     
     
+    // TODO: change to work in terms of char indices
     fn split_recursive(&mut self, pos: usize, left: &mut Rope, right: &mut Rope) {
         match self.data {
             RopeData::Leaf(ref text) => {
@@ -930,6 +989,8 @@ impl Rope {
 
 
 // Direct indexing to graphemes in the rope
+// TODO: change to work in terms of chars, since they're the atomic unit of
+// a Rope.
 impl Index<usize> for Rope {
     type Output = str;
     
@@ -1012,6 +1073,9 @@ impl<'a> Iterator for RopeChunkIter<'a> {
     }
 }
 
+
+// TODO:
+// RopeCharIter
 
 
 /// An iterator over a rope's graphemes
@@ -1100,9 +1164,20 @@ pub struct RopeSlice<'a> {
 
 
 impl<'a> RopeSlice<'a> {
+    pub fn char_count(&self) -> usize {
+        unimplemented!()
+    }
+    
+
     pub fn grapheme_count(&self) -> usize {
         self.end - self.start
     }
+    
+    
+    // TODO:
+    // char_iter()
+    // char_iter_at_index()
+    // char_iter_between_indices()
     
     
     pub fn grapheme_iter(&self) -> RopeGraphemeIter<'a> {
@@ -1123,11 +1198,17 @@ impl<'a> RopeSlice<'a> {
     }
     
     
+    pub fn char_at_index(&self, index: usize) -> char {
+        unimplemented!()
+    }
+    
     pub fn grapheme_at_index(&self, index: usize) -> &'a str {
         &self.rope[self.start+index]
     }
     
     
+    // TODO: change to work in terms of char indices instead of
+    // grapheme indices
     pub fn slice(&self, pos_a: usize, pos_b: usize) -> RopeSlice<'a> {
         let a = min(self.end, self.start + pos_a);
         let b = min(self.end, self.start + pos_b);

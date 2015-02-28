@@ -332,6 +332,49 @@ fn slice_8() {
 
 
 #[test]
+fn char_index_to_grapheme_index_1() {
+    let rope = Rope::from_str("Hello everyone!  How are you doing, eh?"); // 39 chars, 39 graphemes
+    
+    assert_eq!(rope.char_index_to_grapheme_index(0), 0);
+    assert_eq!(rope.char_index_to_grapheme_index(5), 5);
+    assert_eq!(rope.char_index_to_grapheme_index(39), 39);
+}
+
+
+#[test]
+fn char_index_to_grapheme_index_2() {
+    let rope = Rope::from_str("Hello everyone!\u{000D}\u{000A}How are you doing, eh?"); // 39 chars, 38 graphemes
+    
+    assert_eq!(rope.char_index_to_grapheme_index(0), 0);
+    assert_eq!(rope.char_index_to_grapheme_index(15), 15);
+    assert_eq!(rope.char_index_to_grapheme_index(16), 15);
+    assert_eq!(rope.char_index_to_grapheme_index(17), 16);
+    assert_eq!(rope.char_index_to_grapheme_index(39), 38);
+}
+
+
+#[test]
+fn grapheme_index_to_char_index_1() {
+    let rope = Rope::from_str("Hello everyone!  How are you doing, eh?"); // 39 chars, 39 graphemes
+    
+    assert_eq!(rope.grapheme_index_to_char_index(0), 0);
+    assert_eq!(rope.grapheme_index_to_char_index(5), 5);
+    assert_eq!(rope.grapheme_index_to_char_index(39), 39);
+}
+
+
+#[test]
+fn grapheme_index_to_char_index_2() {
+    let rope = Rope::from_str("Hello everyone!\u{000D}\u{000A}How are you doing, eh?"); // 39 chars, 38 graphemes
+    
+    assert_eq!(rope.grapheme_index_to_char_index(0), 0);
+    assert_eq!(rope.grapheme_index_to_char_index(15), 15);
+    assert_eq!(rope.grapheme_index_to_char_index(16), 17);
+    assert_eq!(rope.grapheme_index_to_char_index(38), 39);
+}
+
+
+#[test]
 fn line_index_to_grapheme_index_1() {
     let rope = Rope::from_str("Hello\nworld!\n");
     

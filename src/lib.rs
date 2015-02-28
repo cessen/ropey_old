@@ -18,6 +18,8 @@ use string_utils::{
     char_count,
     char_grapheme_line_ending_count,
     grapheme_count_is_less_than,
+    char_pos_to_grapheme_pos,
+    grapheme_pos_to_char_pos,
     insert_text_at_grapheme_index,
     remove_text_between_grapheme_indices,
     split_string_at_grapheme_index,
@@ -186,13 +188,43 @@ impl Rope {
     /// Returns the index of the grapheme that the given char index is a
     /// part of.
     pub fn char_index_to_grapheme_index(&self, pos: usize) -> usize {
-        unimplemented!()
+        match self.data {
+            RopeData::Leaf(ref text) => {
+                return char_pos_to_grapheme_pos(text, pos);
+            },
+            
+            RopeData::Branch(ref left, ref right) => {
+                if left.char_count_ < pos {
+                    return left.char_index_to_grapheme_index(pos);
+                }
+                else {
+                    return left.grapheme_count_ + right.char_index_to_grapheme_index(pos - left.char_count_);
+                }
+            },
+        }
+        
+        unreachable!()
     }
     
     
     /// Returns the beginning char index of the given grapheme index.
     pub fn grapheme_index_to_char_index(&self, pos: usize) -> usize {
-        unimplemented!()
+        match self.data {
+            RopeData::Leaf(ref text) => {
+                return grapheme_pos_to_char_pos(text, pos);
+            },
+            
+            RopeData::Branch(ref left, ref right) => {
+                if left.grapheme_count_ < pos {
+                    return left.grapheme_index_to_char_index(pos);
+                }
+                else {
+                    return left.char_count_ + right.grapheme_index_to_char_index(pos - left.grapheme_count_);
+                }
+            },
+        }
+        
+        unreachable!()
     }
     
     

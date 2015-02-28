@@ -107,6 +107,51 @@ pub fn grapheme_pos_to_byte_pos(text: &str, pos: usize) -> usize {
     panic!("grapheme_pos_to_byte_pos(): grapheme position off the end of the string.");
 }
 
+pub fn char_pos_to_grapheme_pos(text: &str, pos: usize) -> usize {
+    let mut i = 0usize;
+    let mut cc = 0usize;
+    
+    for g in text.graphemes(true) {
+        if cc == pos {
+            return i;
+        }
+        
+        cc += char_count(g);
+        
+        if cc > pos {
+            return i;
+        }
+        
+        i += 1;
+    }
+    
+    if cc == pos {
+        return i;
+    }
+    
+    panic!("char_pos_to_grapheme_pos(): char position off the end of the string.");
+}
+
+pub fn grapheme_pos_to_char_pos(text: &str, pos: usize) -> usize {
+    let mut i = 0usize;
+    let mut cc = 0usize;
+    
+    for g in text.graphemes(true) {
+        if i == pos {
+            return cc;
+        }
+        
+        cc += char_count(g);
+        i += 1;
+    }
+    
+    if i == pos {
+        return cc;
+    }
+    
+    panic!("grapheme_pos_to_char_pos(): grapheme position off the end of the string.");
+}
+
 /// Inserts the given text into the given string at the given grapheme index.
 pub fn insert_text_at_grapheme_index(s: &mut String, text: &str, pos: usize) {
     // Find insertion position in bytes

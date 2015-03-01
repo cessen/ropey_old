@@ -469,13 +469,13 @@ fn to_string() {
 
 
 #[test]
-fn split_at_grapheme_index_1() {
+fn split_at_char_index_1() {
     let mut rope1 = Rope::from_str("Hello there good people of the world!");
     
     //let mut f1 = BufferedWriter::new(File::create(&Path::new("yar1.gv")).unwrap());
     //f1.write_str(rope1.to_graphviz().as_slice());
             
-    let rope2 = rope1.split_at_grapheme_index(18);
+    let rope2 = rope1.split_at_char_index(18);
 
     //let mut f2 = BufferedWriter::new(File::create(&Path::new("yar2.gv")).unwrap());
     //f2.write_str(rope1.to_graphviz().as_slice());
@@ -489,13 +489,13 @@ fn split_at_grapheme_index_1() {
 
 
 #[test]
-fn split_at_grapheme_index_2() {
+fn split_at_char_index_2() {
     let mut rope1 = Rope::from_str("Hello there good people of the world!");
     
     //let mut f1 = BufferedWriter::new(File::create(&Path::new("yar1.gv")).unwrap());
     //f1.write_str(rope1.to_graphviz().as_slice());
             
-    let rope2 = rope1.split_at_grapheme_index(31);
+    let rope2 = rope1.split_at_char_index(31);
 
     //let mut f2 = BufferedWriter::new(File::create(&Path::new("yar2.gv")).unwrap());
     //f2.write_str(rope1.to_graphviz().as_slice());
@@ -509,13 +509,13 @@ fn split_at_grapheme_index_2() {
 
 
 #[test]
-fn split_at_grapheme_index_3() {
+fn split_at_char_index_3() {
     let mut rope1 = Rope::from_str("Hello there good people of the world!");
     
     //let mut f1 = BufferedWriter::new(File::create(&Path::new("yar1.gv")).unwrap());
     //f1.write_str(rope1.to_graphviz().as_slice());
             
-    let rope2 = rope1.split_at_grapheme_index(5);
+    let rope2 = rope1.split_at_char_index(5);
 
     //let mut f2 = BufferedWriter::new(File::create(&Path::new("yar2.gv")).unwrap());
     //f2.write_str(rope1.to_graphviz().as_slice());
@@ -529,9 +529,9 @@ fn split_at_grapheme_index_3() {
 
 
 #[test]
-fn split_at_grapheme_index_4() {
+fn split_at_char_index_4() {
     let mut rope1 = Rope::from_str("Hello there good people of the world!");
-    let rope2 = rope1.split_at_grapheme_index(37);
+    let rope2 = rope1.split_at_char_index(37);
     
     assert!(rope1.is_balanced());
     assert!(rope2.is_balanced());
@@ -541,14 +541,26 @@ fn split_at_grapheme_index_4() {
 
 
 #[test]
-fn split_at_grapheme_index_5() {
+fn split_at_char_index_5() {
     let mut rope1 = Rope::from_str("Hello there good people of the world!");
-    let rope2 = rope1.split_at_grapheme_index(0);
+    let rope2 = rope1.split_at_char_index(0);
     
     assert!(rope1.is_balanced());
     assert!(rope2.is_balanced());
     assert_eq!("", rope1.to_string().as_slice());
     assert_eq!("Hello there good people of the world!", rope2.to_string().as_slice());
+}
+
+
+#[test]
+fn split_at_char_index_6() {
+    let mut rope1 = Rope::from_str("Hello there good\u{000D}\u{000A}people of the world!");
+    let rope2 = rope1.split_at_char_index(17);
+    
+    assert!(rope1.is_balanced());
+    assert!(rope2.is_balanced());
+    assert_eq!("Hello there good\u{000D}", rope1.to_string().as_slice());
+    assert_eq!("\u{000A}people of the world!", rope2.to_string().as_slice());
 }
 
 
@@ -613,10 +625,100 @@ fn append_5() {
 
 
 #[test]
+fn insert_text_at_char_index_1() {
+    let mut rope = Rope::from_str("Hello there!\u{000D}\u{000A}How are you?");
+    
+    rope.insert_text_at_char_index("Z", 0);
+    
+    assert_eq!(rope.to_string(), "ZHello there!\u{000D}\u{000A}How are you?".to_string());
+}
+
+
+#[test]
+fn insert_text_at_char_index_2() {
+    let mut rope = Rope::from_str("Hello there!\u{000D}\u{000A}How are you?");
+    
+    rope.insert_text_at_char_index("Z", 12);
+    
+    assert_eq!(rope.to_string(), "Hello there!Z\u{000D}\u{000A}How are you?".to_string());
+}
+
+
+#[test]
+fn insert_text_at_char_index_3() {
+    let mut rope = Rope::from_str("Hello there!\u{000D}\u{000A}How are you?");
+    
+    rope.insert_text_at_char_index("Z", 13);
+    
+    assert_eq!(rope.to_string(), "Hello there!\u{000D}Z\u{000A}How are you?".to_string());
+}
+
+
+#[test]
+fn insert_text_at_char_index_4() {
+    let mut rope = Rope::from_str("Hello there!\u{000D}\u{000A}How are you?");
+    
+    rope.insert_text_at_char_index("Z", 14);
+    
+    assert_eq!(rope.to_string(), "Hello there!\u{000D}\u{000A}ZHow are you?".to_string());
+}
+
+
+#[test]
+fn insert_text_at_char_index_5() {
+    let mut rope = Rope::from_str("Hello there!\u{000D}\u{000A}How are you?");
+    
+    rope.insert_text_at_char_index("Z", 26);
+    
+    assert_eq!(rope.to_string(), "Hello there!\u{000D}\u{000A}How are you?Z".to_string());
+}
+
+
+#[test]
+fn insert_text_at_grapheme_index_1() {
+    let mut rope = Rope::from_str("Hello there!\u{000D}\u{000A}How are you?");
+    
+    rope.insert_text_at_grapheme_index("Z", 0);
+    
+    assert_eq!(rope.to_string(), "ZHello there!\u{000D}\u{000A}How are you?".to_string());
+}
+
+
+#[test]
+fn insert_text_at_grapheme_index_2() {
+    let mut rope = Rope::from_str("Hello there!\u{000D}\u{000A}How are you?");
+    
+    rope.insert_text_at_grapheme_index("Z", 12);
+    
+    assert_eq!(rope.to_string(), "Hello there!Z\u{000D}\u{000A}How are you?".to_string());
+}
+
+
+#[test]
+fn insert_text_at_grapheme_index_3() {
+    let mut rope = Rope::from_str("Hello there!\u{000D}\u{000A}How are you?");
+    
+    rope.insert_text_at_grapheme_index("Z", 13);
+    
+    assert_eq!(rope.to_string(), "Hello there!\u{000D}\u{000A}ZHow are you?".to_string());
+}
+
+
+#[test]
+fn insert_text_at_grapheme_index_4() {
+    let mut rope = Rope::from_str("Hello there!\u{000D}\u{000A}How are you?");
+    
+    rope.insert_text_at_grapheme_index("Z", 25);
+    
+    assert_eq!(rope.to_string(), "Hello there!\u{000D}\u{000A}How are you?Z".to_string());
+}
+
+
+#[test]
 fn insert_text() {
     let mut rope = Rope::new();
     
-    rope.insert_text_at_grapheme_index("Hello 世界!", 0);
+    rope.insert_text_at_char_index("Hello 世界!", 0);
     
     let mut iter = rope.grapheme_iter();
     
@@ -639,7 +741,7 @@ fn insert_text() {
 fn insert_text_in_non_empty_buffer_1() {
     let mut rope = Rope::from_str("Hello\n 世界\r\n!");
     
-    rope.insert_text_at_grapheme_index("Again ", 0);
+    rope.insert_text_at_char_index("Again ", 0);
     
     let mut iter = rope.grapheme_iter();
     
@@ -671,7 +773,7 @@ fn insert_text_in_non_empty_buffer_1() {
 fn insert_text_in_non_empty_buffer_2() {
     let mut rope = Rope::from_str("Hello\n 世界\r\n!");
     
-    rope.insert_text_at_grapheme_index(" again", 5);
+    rope.insert_text_at_char_index(" again", 5);
     
     let mut iter = rope.grapheme_iter();
     
@@ -703,7 +805,7 @@ fn insert_text_in_non_empty_buffer_2() {
 fn insert_text_in_non_empty_buffer_3() {
     let mut rope = Rope::from_str("Hello\n 世界\r\n!");
     
-    rope.insert_text_at_grapheme_index("again", 6);
+    rope.insert_text_at_char_index("again", 6);
     
     let mut iter = rope.grapheme_iter();
     
@@ -734,7 +836,7 @@ fn insert_text_in_non_empty_buffer_3() {
 fn insert_text_in_non_empty_buffer_4() {
     let mut rope = Rope::from_str("Hello\n 世界\r\n!");        
 
-    rope.insert_text_at_grapheme_index("again", 11);
+    rope.insert_text_at_char_index("again", 12);
     
     let mut iter = rope.grapheme_iter();
     
@@ -765,7 +867,7 @@ fn insert_text_in_non_empty_buffer_4() {
 fn insert_text_in_non_empty_buffer_5() {
     let mut rope = Rope::from_str("Hello\n 世界\r\n!");
     
-    rope.insert_text_at_grapheme_index("again", 2);
+    rope.insert_text_at_char_index("again", 2);
     
     let mut iter = rope.grapheme_iter();
     
@@ -797,7 +899,7 @@ fn insert_text_in_non_empty_buffer_5() {
 fn insert_text_in_non_empty_buffer_6() {
     let mut rope = Rope::from_str("Hello\n 世界\r\n!");
     
-    rope.insert_text_at_grapheme_index("again", 8);
+    rope.insert_text_at_char_index("again", 8);
     
     let mut iter = rope.grapheme_iter();
     
@@ -829,7 +931,7 @@ fn insert_text_in_non_empty_buffer_6() {
 fn insert_text_in_non_empty_buffer_7() {
     let mut rope = Rope::from_str("Hello\n 世界\r\n!");
     
-    rope.insert_text_at_grapheme_index("\nag\n\nain\n", 2);
+    rope.insert_text_at_char_index("\nag\n\nain\n", 2);
     
     let mut iter = rope.grapheme_iter();
     

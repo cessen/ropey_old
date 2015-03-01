@@ -20,8 +20,9 @@ use string_utils::{
     grapheme_count_is_less_than,
     char_pos_to_grapheme_pos,
     grapheme_pos_to_char_pos,
-    insert_text_at_grapheme_index,
+    insert_text_at_char_index,
     remove_text_between_grapheme_indices,
+    split_string_at_char_index,
     split_string_at_grapheme_index,
     is_line_ending,
 };
@@ -194,7 +195,7 @@ impl Rope {
             },
             
             RopeData::Branch(ref left, ref right) => {
-                if left.char_count_ < pos {
+                if pos < left.char_count_ {
                     return left.char_index_to_grapheme_index(pos);
                 }
                 else {
@@ -215,7 +216,7 @@ impl Rope {
             },
             
             RopeData::Branch(ref left, ref right) => {
-                if left.grapheme_count_ < pos {
+                if pos < left.grapheme_count_ {
                     return left.grapheme_index_to_char_index(pos);
                 }
                 else {
@@ -350,39 +351,24 @@ impl Rope {
     
     /// Inserts the given text at the given char index.
     pub fn insert_text_at_char_index(&mut self, text: &str, pos: usize) {
-        unimplemented!()
-    }
-    
-    
-    /// Removes the text between the given char indices.
-    pub fn remove_text_between_char_indices(&mut self, pos_a: usize, pos_b: usize) {
-        unimplemented!()
-    }
-    
-    
-    /// Inserts the given text at the given grapheme index.
-    /// For small lengths of 'text' runs in O(log N) time.
-    /// For large lengths of 'text', dunno.  But it seems to perform
-    /// sub-linearly, at least.
-    pub fn insert_text_at_grapheme_index(&mut self, text: &str, pos: usize) {
         let mut leaf_insert = false;
         
         match self.data {
             // Find node for text to be inserted into
             RopeData::Branch(ref mut left, ref mut right) => {
-                if pos < left.grapheme_count_ {
-                    left.insert_text_at_grapheme_index(text, pos);
+                if pos < left.char_count_ {
+                    left.insert_text_at_char_index(text, pos);
                 }
                 else {
-                    right.insert_text_at_grapheme_index(text, pos - left.grapheme_count_);
+                    right.insert_text_at_char_index(text, pos - left.char_count_);
                 }
             },
             
             // Insert the text
             RopeData::Leaf(ref mut s_text) => {
-                if grapheme_count_is_less_than(text, MAX_NODE_SIZE - self.grapheme_count_ + 1) {
+                if grapheme_count_is_less_than(text, MAX_NODE_SIZE - self.grapheme_count_) {
                     // Simple case
-                    insert_text_at_grapheme_index(s_text, text, pos);
+                    insert_text_at_char_index(s_text, text, pos);
                 }
                 else {
                     // Special cases
@@ -403,7 +389,7 @@ impl Rope {
                 mem::swap(self, &mut new_rope);
                 self.data = RopeData::Branch(Box::new(Rope::from_str(text)), Box::new(new_rope));
             }
-            else if pos == self.grapheme_count_ {
+            else if pos == self.char_count_ {
                 let mut new_rope = Rope::new();
                 mem::swap(self, &mut new_rope);
                 self.data = RopeData::Branch(Box::new(new_rope), Box::new(Rope::from_str(text)));
@@ -411,7 +397,7 @@ impl Rope {
             else {
                 // Split the leaf node at the insertion point
                 let mut node_l = Rope::new();
-                let node_r = self.split_at_grapheme_index(pos);
+                let node_r = self.split_at_char_index(pos);
                 mem::swap(self, &mut node_l);
                 
                 // Set the inserted text as the main node
@@ -426,6 +412,23 @@ impl Rope {
         
         self.update_stats();
         self.rebalance();
+    }
+    
+    
+    /// Removes the text between the given char indices.
+    pub fn remove_text_between_char_indices(&mut self, pos_a: usize, pos_b: usize) {
+        unimplemented!()
+    }
+    
+    
+    /// Inserts the given text at the given grapheme index.
+    /// For small lengths of 'text' runs in O(log N) time.
+    /// For large lengths of 'text', dunno.  But it seems to perform
+    /// sub-linearly, at least.
+    pub fn insert_text_at_grapheme_index(&mut self, text: &str, pos: usize) {
+        let cpos = self.grapheme_index_to_char_index(pos);
+        
+        self.insert_text_at_char_index(text, cpos);
     }
     
     
@@ -473,7 +476,13 @@ impl Rope {
     /// I _think_ this runs in O(log N) time, but this needs more analysis to
     /// be sure.  It is at least sublinear.
     pub fn split_at_char_index(&mut self, pos: usize) -> Rope {
-        unimplemented!()
+        let mut left = Rope::new();
+        let mut right = Rope::new();
+        
+        self.split_recursive(pos, &mut left, &mut right);
+        
+        mem::swap(self, &mut left);
+        return right;
     }
     
     
@@ -483,13 +492,9 @@ impl Rope {
     /// I _think_ this runs in O(log N) time, but this needs more analysis to
     /// be sure.  It is at least sublinear.
     pub fn split_at_grapheme_index(&mut self, pos: usize) -> Rope {
-        let mut left = Rope::new();
-        let mut right = Rope::new();
+        let cpos = self.grapheme_index_to_char_index(pos);
         
-        self.split_recursive(pos, &mut left, &mut right);
-        
-        mem::swap(self, &mut left);
-        return right;
+        return self.split_at_char_index(cpos);
     }
     
 
@@ -710,13 +715,12 @@ impl Rope {
     }
     
     
-    // TODO: change to work in terms of char indices
     fn split_recursive(&mut self, pos: usize, left: &mut Rope, right: &mut Rope) {
         match self.data {
             RopeData::Leaf(ref text) => {
                 // Split the text into two new nodes
                 let mut l_text = text.clone();
-                let r_text = split_string_at_grapheme_index(&mut l_text, pos);
+                let r_text = split_string_at_char_index(&mut l_text, pos);
                 let new_rope_l = Rope::from_string(l_text);
                 let mut new_rope_r = Rope::from_string(r_text);
                 
@@ -733,7 +737,7 @@ impl Rope {
                 mem::swap(&mut **right_b, &mut r);
                 
                 // Split is on left side
-                if pos < l.grapheme_count_ {
+                if pos < l.char_count_ {
                     // Append the right split to the right side
                     mem::swap(right, &mut r);
                     right.append(r);
@@ -759,7 +763,7 @@ impl Rope {
                 // Split is on right side
                 else {
                     // Append the left split to the left side
-                    let new_pos = pos - l.grapheme_count_;
+                    let new_pos = pos - l.char_count_;
                     left.append(l);
                     
                     // Recurse

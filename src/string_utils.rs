@@ -153,6 +153,37 @@ pub fn grapheme_pos_to_char_pos(text: &str, pos: usize) -> usize {
 }
 
 /// Inserts the given text into the given string at the given grapheme index.
+pub fn insert_text_at_char_index(s: &mut String, text: &str, pos: usize) {
+    // Find insertion position in bytes
+    let byte_pos = char_pos_to_byte_pos(s.as_slice(), pos);
+    
+    // Get byte vec of string
+    let byte_vec = unsafe { s.as_mut_vec() };
+    
+    // Grow data size        
+    byte_vec.extend(repeat(0).take(text.len()));
+    
+    // Move old bytes forward
+    // TODO: use copy_memory()...?
+    let mut from = byte_vec.len() - text.len();
+    let mut to = byte_vec.len();
+    while from > byte_pos {
+        from -= 1;
+        to -= 1;
+        
+        byte_vec[to] = byte_vec[from];
+    }
+    
+    // Copy new bytes in
+    // TODO: use copy_memory()
+    let mut i = byte_pos;
+    for b in text.bytes() {
+        byte_vec[i] = b;
+        i += 1
+    }
+}
+
+/// Inserts the given text into the given string at the given grapheme index.
 pub fn insert_text_at_grapheme_index(s: &mut String, text: &str, pos: usize) {
     // Find insertion position in bytes
     let byte_pos = grapheme_pos_to_byte_pos(s.as_slice(), pos);
@@ -218,6 +249,26 @@ pub fn remove_text_between_grapheme_indices(s: &mut String, pos_a: usize, pos_b:
     byte_vec.truncate(final_text_size);
 }
 
+/// Splits a string into two strings at the char index given.
+/// The first section of the split is stored in the original string,
+/// while the second section of the split is returned as a new string.
+pub fn split_string_at_char_index(s1: &mut String, pos: usize) -> String {
+    let mut s2 = String::new();
+    
+    // Code block to contain the borrow of s2
+    {
+        let byte_pos = char_pos_to_byte_pos(s1.as_slice(), pos);
+        
+        let byte_vec_1 = unsafe { s1.as_mut_vec() };
+        let byte_vec_2 = unsafe { s2.as_mut_vec() };
+        
+        byte_vec_2.push_all(&byte_vec_1[byte_pos..]);
+        byte_vec_1.truncate(byte_pos);
+    }
+    
+    return s2;
+}
+
 /// Splits a string into two strings at the grapheme index given.
 /// The first section of the split is stored in the original string,
 /// while the second section of the split is returned as a new string.
@@ -236,4 +287,45 @@ pub fn split_string_at_grapheme_index(s1: &mut String, pos: usize) -> String {
     }
     
     return s2;
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    
+    #[test]
+    fn char_pos_to_grapheme_pos_1() {
+        let s = "Hello\u{000D}\u{000A}there!";
+        
+        assert_eq!(char_pos_to_grapheme_pos(s, 0), 0);
+        assert_eq!(char_pos_to_grapheme_pos(s, 5), 5);
+        assert_eq!(char_pos_to_grapheme_pos(s, 6), 5);
+        assert_eq!(char_pos_to_grapheme_pos(s, 7), 6);
+        assert_eq!(char_pos_to_grapheme_pos(s, 13), 12);
+    }
+    
+    #[test]
+    fn char_pos_to_grapheme_pos_2() {
+        let s = "a";
+        
+        assert_eq!(char_pos_to_grapheme_pos(s, 0), 0);
+        assert_eq!(char_pos_to_grapheme_pos(s, 1), 1);
+    }
+    
+    #[test]
+    fn char_pos_to_grapheme_pos_3() {
+        let s = "\u{000D}\u{000A}";
+        
+        assert_eq!(char_pos_to_grapheme_pos(s, 0), 0);
+        assert_eq!(char_pos_to_grapheme_pos(s, 1), 0);
+        assert_eq!(char_pos_to_grapheme_pos(s, 2), 1);
+    }
+    
+    #[test]
+    fn char_pos_to_grapheme_pos_4() {
+        let s = "";
+        
+        assert_eq!(char_pos_to_grapheme_pos(s, 0), 0);
+    }
 }

@@ -166,8 +166,18 @@ impl Rope {
     /// Returns the number of graphemes between char indices pos_a and pos_b.
     /// This is not as simple as a subtraction of char_index_to_grapheme_index()
     /// calls, because the char indices may split graphemes.
+    /// Runs in O(log N) time.
     pub fn grapheme_count_in_char_range(&self, pos_a: usize, pos_b: usize) -> usize {
-        unimplemented!()
+        let ga = self.char_index_to_grapheme_index(pos_a);
+        let gb = self.char_index_to_grapheme_index(pos_b);
+        let cb = self.grapheme_index_to_char_index(gb);
+        
+        if pos_b == cb {
+            return gb - ga;
+        }
+        else {
+            return 1 + gb - ga;
+        }
     }
     
     

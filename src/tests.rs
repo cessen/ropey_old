@@ -91,6 +91,25 @@ fn counts() {
     assert_eq!(rope.char_count(), 13);
     assert_eq!(rope.grapheme_count(), 12);
     assert_eq!(rope.line_count(), 2);
+    assert_eq!(rope.grapheme_count_in_char_range(0, 13), 12);
+}
+
+
+#[test]
+fn grapheme_count_in_char_range() {
+    let rope = Rope::from_str("Hello\u{000D}\u{000A}world!");
+    
+    assert_eq!(rope.grapheme_count_in_char_range(5, 13), 7);
+    assert_eq!(rope.grapheme_count_in_char_range(6, 13), 7);
+    assert_eq!(rope.grapheme_count_in_char_range(7, 13), 6);
+    
+    assert_eq!(rope.grapheme_count_in_char_range(0, 7), 6);
+    assert_eq!(rope.grapheme_count_in_char_range(0, 6), 6);
+    assert_eq!(rope.grapheme_count_in_char_range(0, 5), 5);
+    
+    assert_eq!(rope.grapheme_count_in_char_range(5, 7), 1);
+    assert_eq!(rope.grapheme_count_in_char_range(5, 6), 1);
+    assert_eq!(rope.grapheme_count_in_char_range(6, 7), 1);
 }
 
 

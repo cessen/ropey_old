@@ -375,12 +375,12 @@ fn grapheme_index_to_char_index_2() {
 
 
 #[test]
-fn line_index_to_grapheme_index_1() {
+fn line_index_to_char_index_1() {
     let rope = Rope::from_str("Hello\nworld!\n");
     
-    assert_eq!(rope.line_index_to_grapheme_index(0), 0);
-    assert_eq!(rope.line_index_to_grapheme_index(1), 6);
-    assert_eq!(rope.line_index_to_grapheme_index(2), 13);
+    assert_eq!(rope.line_index_to_char_index(0), 0);
+    assert_eq!(rope.line_index_to_char_index(1), 6);
+    assert_eq!(rope.line_index_to_char_index(2), 13);
 }
 
 
@@ -388,74 +388,44 @@ fn line_index_to_grapheme_index_1() {
 fn line_index_to_grapheme_index_2() {
     let rope = Rope::from_str("Hi\nthere\npeople\nof\nthe\nworld!");
     
-    assert_eq!(rope.line_index_to_grapheme_index(0), 0);
-    assert_eq!(rope.line_index_to_grapheme_index(1), 3);
-    assert_eq!(rope.line_index_to_grapheme_index(2), 9);
-    assert_eq!(rope.line_index_to_grapheme_index(3), 16);
-    assert_eq!(rope.line_index_to_grapheme_index(4), 19);
-    assert_eq!(rope.line_index_to_grapheme_index(5), 23);
+    assert_eq!(rope.line_index_to_char_index(0), 0);
+    assert_eq!(rope.line_index_to_char_index(1), 3);
+    assert_eq!(rope.line_index_to_char_index(2), 9);
+    assert_eq!(rope.line_index_to_char_index(3), 16);
+    assert_eq!(rope.line_index_to_char_index(4), 19);
+    assert_eq!(rope.line_index_to_char_index(5), 23);
 }
 
 
 #[test]
-fn grapheme_index_to_line_index_1() {
+fn char_index_to_line_index_1() {
     let rope = Rope::from_str("Hello\nworld!\n");
     
-    assert_eq!(rope.grapheme_index_to_line_index(0), 0);
-    assert_eq!(rope.grapheme_index_to_line_index(1), 0);
-    assert_eq!(rope.grapheme_index_to_line_index(5), 0);
-    assert_eq!(rope.grapheme_index_to_line_index(6), 1);
-    assert_eq!(rope.grapheme_index_to_line_index(12), 1);
-    assert_eq!(rope.grapheme_index_to_line_index(13), 2);
+    assert_eq!(rope.char_index_to_line_index(0), 0);
+    assert_eq!(rope.char_index_to_line_index(1), 0);
+    assert_eq!(rope.char_index_to_line_index(5), 0);
+    assert_eq!(rope.char_index_to_line_index(6), 1);
+    assert_eq!(rope.char_index_to_line_index(12), 1);
+    assert_eq!(rope.char_index_to_line_index(13), 2);
 }
 
 
 #[test]
-fn grapheme_index_to_line_index_2() {
+fn char_index_to_line_index_2() {
     let rope = Rope::from_str("Hi\nthere\npeople\nof\nthe\nworld!");
     
-    assert_eq!(rope.grapheme_index_to_line_index(0), 0);
-    assert_eq!(rope.grapheme_index_to_line_index(2), 0);
-    assert_eq!(rope.grapheme_index_to_line_index(3), 1);
-    assert_eq!(rope.grapheme_index_to_line_index(8), 1);
-    assert_eq!(rope.grapheme_index_to_line_index(9), 2);
-    assert_eq!(rope.grapheme_index_to_line_index(15), 2);
-    assert_eq!(rope.grapheme_index_to_line_index(16), 3);
-    assert_eq!(rope.grapheme_index_to_line_index(18), 3);
-    assert_eq!(rope.grapheme_index_to_line_index(19), 4);
-    assert_eq!(rope.grapheme_index_to_line_index(22), 4);
-    assert_eq!(rope.grapheme_index_to_line_index(23), 5);
-    assert_eq!(rope.grapheme_index_to_line_index(29), 5);
-}
-
-
-#[test]
-fn grapheme_index_to_line_col_1() {
-    let rope = Rope::from_str("Hello\nworld!\n");
-    
-    assert_eq!(rope.grapheme_index_to_line_col(0), (0,0));
-    assert_eq!(rope.grapheme_index_to_line_col(5), (0,5));
-    assert_eq!(rope.grapheme_index_to_line_col(6), (1,0));
-    assert_eq!(rope.grapheme_index_to_line_col(12), (1,6));
-    assert_eq!(rope.grapheme_index_to_line_col(13), (2,0));
-    assert_eq!(rope.grapheme_index_to_line_col(14), (2,0));
-}
-
-
-#[test]
-fn line_col_to_grapheme_index_1() {
-    let rope = Rope::from_str("Hello\nworld!\n");
-    
-    assert_eq!(rope.line_col_to_grapheme_index((0,0)), 0);
-    assert_eq!(rope.line_col_to_grapheme_index((0,5)), 5);
-    assert_eq!(rope.line_col_to_grapheme_index((0,6)), 5);
-    
-    assert_eq!(rope.line_col_to_grapheme_index((1,0)), 6);
-    assert_eq!(rope.line_col_to_grapheme_index((1,6)), 12);
-    assert_eq!(rope.line_col_to_grapheme_index((1,7)), 12);
-    
-    assert_eq!(rope.line_col_to_grapheme_index((2,0)), 13);
-    assert_eq!(rope.line_col_to_grapheme_index((2,1)), 13);        
+    assert_eq!(rope.char_index_to_line_index(0), 0);
+    assert_eq!(rope.char_index_to_line_index(2), 0);
+    assert_eq!(rope.char_index_to_line_index(3), 1);
+    assert_eq!(rope.char_index_to_line_index(8), 1);
+    assert_eq!(rope.char_index_to_line_index(9), 2);
+    assert_eq!(rope.char_index_to_line_index(15), 2);
+    assert_eq!(rope.char_index_to_line_index(16), 3);
+    assert_eq!(rope.char_index_to_line_index(18), 3);
+    assert_eq!(rope.char_index_to_line_index(19), 4);
+    assert_eq!(rope.char_index_to_line_index(22), 4);
+    assert_eq!(rope.char_index_to_line_index(23), 5);
+    assert_eq!(rope.char_index_to_line_index(29), 5);
 }
 
 

@@ -28,7 +28,7 @@ use string_utils::{
 };
 
 
-pub const MIN_NODE_SIZE: usize = 64;
+pub const MIN_NODE_SIZE: usize = 1;
 pub const MAX_NODE_SIZE: usize = MIN_NODE_SIZE * 2;
 
 
@@ -229,11 +229,11 @@ impl Rope {
     }
     
     
-    /// Returns the grapheme index at the start of the given line index.
-    pub fn line_index_to_grapheme_index(&self, li: usize) -> usize {
+    /// Returns the char index at the start of the given line index.
+    pub fn line_index_to_char_index(&self, li: usize) -> usize {
         // Bounds check
         if li > self.line_ending_count {
-            panic!("Rope::line_index_to_grapheme_index: line index is out of bounds.");
+            panic!("Rope::line_index_to_char_index: line index is out of bounds.");
         }
         
         // Special case for the beginning of the rope
@@ -244,10 +244,10 @@ impl Rope {
         // General cases
         match self.data {
             RopeData::Leaf(ref text) => {
-                let mut gi = 0;
+                let mut ci = 0;
                 let mut lei = 0;
                 for g in text.as_slice().graphemes(true) {
-                    gi += 1;
+                    ci += char_count(g);
                     if is_line_ending(g) {
                         lei += 1;
                     }
@@ -255,32 +255,35 @@ impl Rope {
                         break;
                     }
                 }
-                return gi;
+                return ci;
             },
             
             RopeData::Branch(ref left, ref right) => {
                 if li <= left.line_ending_count {
-                    return left.line_index_to_grapheme_index(li);
+                    return left.line_index_to_char_index(li);
                 }
                 else {
-                    return right.line_index_to_grapheme_index(li - left.line_ending_count) + left.grapheme_count_;
+                    return right.line_index_to_char_index(li - left.line_ending_count) + left.char_count_;
                 }
             },
         }
     }
     
     
-    /// Returns the index of the line that the given grapheme index is on.
-    pub fn grapheme_index_to_line_index(&self, pos: usize) -> usize {
+    /// Returns the index of the line that the given char index is on.
+    pub fn char_index_to_line_index(&self, pos: usize) -> usize {
         match self.data {
             RopeData::Leaf(ref text) => {
-                let mut gi = 0;
+                let mut ci = 0;
                 let mut lei = 0;
                 for g in text.as_slice().graphemes(true) {
-                    if gi == pos {
+                    if ci == pos {
                         break;
                     }
-                    gi += 1;
+                    ci += char_count(g);
+                    if ci > pos {
+                        break;
+                    }
                     if is_line_ending(g) {
                         lei += 1;
                     }
@@ -289,52 +292,13 @@ impl Rope {
             },
             
             RopeData::Branch(ref left, ref right) => {
-                if pos < left.grapheme_count_ {
-                    return left.grapheme_index_to_line_index(pos);
+                if pos < left.char_count_ {
+                    return left.char_index_to_line_index(pos);
                 }
                 else {
-                    return right.grapheme_index_to_line_index(pos - left.grapheme_count_) + left.line_ending_count;
+                    return right.char_index_to_line_index(pos - left.char_count_) + left.line_ending_count;
                 }
             },
-        }
-    }
-    
-    
-    /// Converts a grapheme index into a line number and grapheme-column
-    /// number.
-    ///
-    /// If the index is off the end of the text, returns the line and column
-    /// number of the last valid text position.
-    pub fn grapheme_index_to_line_col(&self, pos: usize) -> (usize, usize) {
-        let p = min(pos, self.grapheme_count_);
-        let line = self.grapheme_index_to_line_index(p);
-        let line_pos = self.line_index_to_grapheme_index(line);
-        return (line, p - line_pos);
-    }
-    
-    
-    /// Converts a line number and grapheme-column number into a grapheme
-    /// index.
-    ///
-    /// If the column number given is beyond the end of the line, returns the
-    /// index of the line's last valid position.  If the line number given is
-    /// beyond the end of the buffer, returns the index of the buffer's last
-    /// valid position.
-    pub fn line_col_to_grapheme_index(&self, pos: (usize, usize)) -> usize {
-        if pos.0 <= self.line_ending_count {
-            let l_begin_pos = self.line_index_to_grapheme_index(pos.0);
-            
-            let l_end_pos = if pos.0 < self.line_ending_count {
-                self.line_index_to_grapheme_index(pos.0 + 1) - 1
-            }
-            else {
-                self.grapheme_count_
-            };
-                
-            return min(l_begin_pos + pos.1, l_end_pos);
-        }
-        else {
-            return self.grapheme_count_;
         }
     }
     
@@ -1172,17 +1136,21 @@ impl<'a> Iterator for RopeLineIter<'a> {
             return None;
         }
         else {
-            let a = self.rope.line_index_to_grapheme_index(self.li);
+            let a = self.rope.line_index_to_char_index(self.li);
             let b = if self.li+1 < self.rope.line_count() {
-                self.rope.line_index_to_grapheme_index(self.li+1)
+                self.rope.line_index_to_char_index(self.li+1)
             }
             else {
-                self.rope.grapheme_count()
+                self.rope.char_count()
             };
             
             self.li += 1;
             
-            return Some(self.rope.slice(a, b));
+            // TODO: remove these conversions once slices work in terms
+            // of chars.
+            let ga = self.rope.char_index_to_grapheme_index(a);
+            let gb = self.rope.char_index_to_grapheme_index(b);
+            return Some(self.rope.slice(ga, gb));
         }
     }
 }

@@ -12,7 +12,7 @@ mod benches;
 
 use std::cmp::{min, max};
 use std::mem;
-use std::str::Graphemes;
+use std::str::{Chars, Graphemes};
 use std::ops::Index;
 use string_utils::{
     char_count,
@@ -510,11 +510,11 @@ impl Rope {
     
     
     /// Creates a chunk iter starting at the chunk containing the given
-    /// grapheme index.  Returns the chunk and its starting grapheme index.
+    /// char index.  Returns the chunk and its starting char index.
     pub fn chunk_iter_at_index<'a>(&'a self, index: usize) -> (usize, RopeChunkIter<'a>) {
         let mut node_stack: Vec<&'a Rope> = Vec::new();
         let mut cur_node = self;
-        let mut grapheme_i = index;
+        let mut char_i = index;
         
         // Find the right rope node, and populate the stack at the same time
         loop {
@@ -525,26 +525,60 @@ impl Rope {
                 },
                 
                 RopeData::Branch(ref left, ref right) => {
-                    if grapheme_i < left.grapheme_count_ {
+                    if char_i < left.char_count_ {
                         node_stack.push(&(**right));
                         cur_node = &(**left);
                     }
                     else {
                         cur_node = &(**right);
-                        grapheme_i -= left.grapheme_count_;
+                        char_i -= left.char_count_;
                     }
                 }
             }
         }
         
-        (index - grapheme_i, RopeChunkIter {node_stack: node_stack})
+        (index - char_i, RopeChunkIter {node_stack: node_stack})
     }
     
     
-    // TODO:
-    // char_iter()
-    // char_iter_at_index()
-    // char_iter_between_indices()
+    /// Creates an iterator at the first char of the rope
+    pub fn char_iter<'a>(&'a self) -> RopeCharIter<'a> {
+        self.char_iter_at_index(0)
+    }
+    
+    
+    /// Creates an iterator starting at the given char index
+    pub fn char_iter_at_index<'a>(&'a self, index: usize) -> RopeCharIter<'a> {
+        let (char_i, mut chunk_iter) = self.chunk_iter_at_index(index);
+        
+        // Create the char iter for the current node
+        let mut citer = if let Some(text) = chunk_iter.next() {
+            text.as_slice().chars()
+        }
+        else {
+            unreachable!()
+        };
+        
+        // Get to the right spot in the iter
+        for _ in char_i..index {
+            citer.next();
+        }
+        
+        // Create the rope grapheme iter
+        return RopeCharIter {
+            chunk_iter: chunk_iter,
+            cur_chunk: citer,
+            length: None,
+        };
+    }
+    
+    
+    /// Creates an iterator that starts at pos_a and stops just before pos_b.
+    pub fn char_iter_between_indices<'a>(&'a self, pos_a: usize, pos_b: usize) -> RopeCharIter<'a> {
+        let mut iter = self.char_iter_at_index(pos_a);
+        iter.length = Some(pos_b - pos_a);
+        return iter;
+    }
     
     
     /// Creates an iterator at the first grapheme of the rope
@@ -1045,8 +1079,43 @@ impl<'a> Iterator for RopeChunkIter<'a> {
 }
 
 
-// TODO:
-// RopeCharIter
+// An iterator over a rope's chars
+pub struct RopeCharIter<'a> {
+    chunk_iter: RopeChunkIter<'a>,
+    cur_chunk: Chars<'a>,
+    length: Option<usize>,
+}
+
+
+impl<'a> Iterator for RopeCharIter<'a> {
+    type Item = char;
+    
+    fn next(&mut self) -> Option<char> {
+        if let Some(ref mut l) = self.length {
+            if *l == 0 {
+                return None;
+            }
+        }
+        
+        loop {
+            if let Some(c) = self.cur_chunk.next() {
+                if let Some(ref mut l) = self.length {
+                    *l -= 1;
+                }
+                return Some(c);
+            }
+            else {   
+                if let Some(s) = self.chunk_iter.next() {
+                    self.cur_chunk = s.chars();
+                    continue;
+                }
+                else {
+                    return None;
+                }
+            }
+        }
+    }
+}
 
 
 /// An iterator over a rope's graphemes

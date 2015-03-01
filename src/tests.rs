@@ -95,6 +95,23 @@ fn counts() {
 
 
 #[test]
+fn char_at_index() {
+    let rope = Rope::from_str("Hel世界lo\u{000D}\u{000A}world!");
+    
+    assert_eq!(rope.char_count(), 15);
+    assert_eq!(rope.grapheme_count(), 14);
+    assert_eq!(rope.line_count(), 2);
+    
+    assert_eq!('H', rope.char_at_index(0));
+    assert_eq!('界', rope.char_at_index(4));
+    assert_eq!('\u{000D}', rope.char_at_index(7));
+    assert_eq!('\u{000A}', rope.char_at_index(8));
+    assert_eq!('w', rope.char_at_index(9));
+    assert_eq!('!', rope.char_at_index(14));
+}
+
+
+#[test]
 fn grapheme_at_index() {
     let rope = Rope::from_str("Hel世界lo\u{000D}\u{000A}world!");
     
@@ -111,19 +128,143 @@ fn grapheme_at_index() {
 
 
 #[test]
-fn char_at_index() {
+fn char_iter_1() {
     let rope = Rope::from_str("Hel世界lo\u{000D}\u{000A}world!");
     
-    assert_eq!(rope.char_count(), 15);
-    assert_eq!(rope.grapheme_count(), 14);
-    assert_eq!(rope.line_count(), 2);
+    let mut iter = rope.char_iter();
     
-    assert_eq!('H', rope.char_at_index(0));
-    assert_eq!('界', rope.char_at_index(4));
-    assert_eq!('\u{000D}', rope.char_at_index(7));
-    assert_eq!('\u{000A}', rope.char_at_index(8));
-    assert_eq!('w', rope.char_at_index(9));
-    assert_eq!('!', rope.char_at_index(14));
+    assert!(Some('H') == iter.next());
+    assert!(Some('e') == iter.next());
+    assert!(Some('l') == iter.next());
+    assert!(Some('世') == iter.next());
+    assert!(Some('界') == iter.next());
+    assert!(Some('l') == iter.next());
+    assert!(Some('o') == iter.next());
+    assert!(Some('\u{000D}') == iter.next());
+    assert!(Some('\u{000A}') == iter.next());
+    assert!(Some('w') == iter.next());
+    assert!(Some('o') == iter.next());
+    assert!(Some('r') == iter.next());
+    assert!(Some('l') == iter.next());
+    assert!(Some('d') == iter.next());
+    assert!(Some('!') == iter.next());
+    assert!(None == iter.next());
+}
+
+
+#[test]
+fn char_iter_2() {
+    let rope = Rope::from_str("Hel世界lo\u{000D}\u{000A}world!");
+    
+    let mut iter = rope.char_iter_at_index(8);
+    
+    assert!(Some('\u{000A}') == iter.next());
+    assert!(Some('w') == iter.next());
+    assert!(Some('o') == iter.next());
+    assert!(Some('r') == iter.next());
+    assert!(Some('l') == iter.next());
+    assert!(Some('d') == iter.next());
+    assert!(Some('!') == iter.next());
+    assert!(None == iter.next());
+}
+
+
+#[test]
+fn char_iter_3() {
+    let rope = Rope::from_str("Hel世界lo\u{000D}\u{000A}world!");
+    
+    let mut iter = rope.char_iter_at_index(9);
+    
+    assert!(Some('w') == iter.next());
+    assert!(Some('o') == iter.next());
+    assert!(Some('r') == iter.next());
+    assert!(Some('l') == iter.next());
+    assert!(Some('d') == iter.next());
+    assert!(Some('!') == iter.next());
+    assert!(None == iter.next());
+}
+
+
+#[test]
+fn char_iter_4() {
+    let rope = Rope::from_str("Hel世界lo\u{000D}\u{000A}world!");
+    
+    let mut iter = rope.char_iter_between_indices(9, 12);
+    
+    assert!(Some('w') == iter.next());
+    assert!(Some('o') == iter.next());
+    assert!(Some('r') == iter.next());
+    assert!(None == iter.next());
+}
+
+
+#[test]
+fn grapheme_iter_1() {
+    let rope = Rope::from_str("Hel世界lo\u{000D}\u{000A}world!");
+    
+    let mut iter = rope.grapheme_iter();
+    
+    assert!(Some("H") == iter.next());
+    assert!(Some("e") == iter.next());
+    assert!(Some("l") == iter.next());
+    assert!(Some("世") == iter.next());
+    assert!(Some("界") == iter.next());
+    assert!(Some("l") == iter.next());
+    assert!(Some("o") == iter.next());
+    assert!(Some("\u{000D}\u{000A}") == iter.next());
+    assert!(Some("w") == iter.next());
+    assert!(Some("o") == iter.next());
+    assert!(Some("r") == iter.next());
+    assert!(Some("l") == iter.next());
+    assert!(Some("d") == iter.next());
+    assert!(Some("!") == iter.next());
+    assert!(None == iter.next());
+}
+
+
+#[test]
+fn grapheme_iter_2() {
+    let rope = Rope::from_str("Hel世界lo\u{000D}\u{000A}world!");
+    
+    let mut iter = rope.grapheme_iter_at_index(7);
+    
+    assert!(Some("\u{000D}\u{000A}") == iter.next());
+    assert!(Some("w") == iter.next());
+    assert!(Some("o") == iter.next());
+    assert!(Some("r") == iter.next());
+    assert!(Some("l") == iter.next());
+    assert!(Some("d") == iter.next());
+    assert!(Some("!") == iter.next());
+    assert!(None == iter.next());
+}
+
+
+#[test]
+fn grapheme_iter_3() {
+    let rope = Rope::from_str("Hel世界lo\u{000D}\u{000A}world!");
+    
+    let mut iter = rope.grapheme_iter_at_index(8);
+    
+    assert!(Some("w") == iter.next());
+    assert!(Some("o") == iter.next());
+    assert!(Some("r") == iter.next());
+    assert!(Some("l") == iter.next());
+    assert!(Some("d") == iter.next());
+    assert!(Some("!") == iter.next());
+    assert!(None == iter.next());
+}
+
+
+#[test]
+fn grapheme_iter_4() {
+    let rope = Rope::from_str("Hel世界lo\u{000D}\u{000A}world!");
+    
+    let mut iter = rope.grapheme_iter_between_indices(8, 11);
+    
+    assert!(Some("w") == iter.next());
+    assert!(Some("o") == iter.next());
+    assert!(Some("r") == iter.next());
+    assert!(None == iter.next());
 }
 
 

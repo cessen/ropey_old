@@ -13,7 +13,6 @@ mod benches;
 use std::cmp::{min, max};
 use std::mem;
 use std::str::{Chars, Graphemes};
-use std::ops::Index;
 use string_utils::{
     char_count,
     char_grapheme_line_ending_count,
@@ -650,11 +649,10 @@ impl Rope {
     }
     
     
-    // TODO: change pos_a and pos_b to be char indices instead of grapheme
-    // indices
+    // Creates a slice into the Rope, between char indices pos_a and pos_b.
     pub fn slice<'a>(&'a self, pos_a: usize, pos_b: usize) -> RopeSlice<'a> {
         let a = pos_a;
-        let b = min(self.grapheme_count_, pos_b);
+        let b = min(self.char_count_, pos_b);
         
         RopeSlice {
             rope: self,
@@ -1219,50 +1217,73 @@ pub struct RopeSlice<'a> {
 
 impl<'a> RopeSlice<'a> {
     pub fn char_count(&self) -> usize {
-        unimplemented!()
+        self.end - self.start
     }
     
 
     pub fn grapheme_count(&self) -> usize {
-        self.end - self.start
+        self.rope.grapheme_count_in_char_range(self.start, self.end)
     }
     
     
-    // TODO:
-    // char_iter()
-    // char_iter_at_index()
-    // char_iter_between_indices()
+    pub fn char_iter(&self) -> RopeCharIter<'a> {
+        self.rope.char_iter_between_indices(self.start, self.end)
+    }
+    
+    pub fn char_iter_at_index(&self, pos: usize) -> RopeCharIter<'a> {
+        let a = min(self.end, self.start + pos);
+        
+        self.rope.char_iter_between_indices(a, self.end)
+    }
+    
+    pub fn char_iter_between_indices(&self, pos_a: usize, pos_b: usize) -> RopeCharIter<'a> {
+        let a = min(self.end, self.start + pos_a);
+        let b = min(self.end, self.start + pos_b);
+        
+        self.rope.char_iter_between_indices(a, b)
+    }
     
     
     pub fn grapheme_iter(&self) -> RopeGraphemeIter<'a> {
-        self.rope.grapheme_iter_between_indices(self.start, self.end)
+        // TODO: handle partially cut-off graphemes
+        let gs = self.rope.char_index_to_grapheme_index(self.start);
+        let ge = self.rope.char_index_to_grapheme_index(self.end);
+        self.rope.grapheme_iter_between_indices(gs, ge)
     }
     
     pub fn grapheme_iter_at_index(&self, pos: usize) -> RopeGraphemeIter<'a> {
-        let a = min(self.end, self.start + pos);
+        // TODO: handle partially cut-off graphemes
+        let gs = self.rope.char_index_to_grapheme_index(self.start);
+        let ge = self.rope.char_index_to_grapheme_index(self.end);
         
-        self.rope.grapheme_iter_between_indices(a, self.end)
+        let a = min(ge, gs + pos);
+        
+        self.rope.grapheme_iter_between_indices(a, ge)
     }
     
     pub fn grapheme_iter_between_indices(&self, pos_a: usize, pos_b: usize) -> RopeGraphemeIter<'a> {
-        let a = min(self.end, self.start + pos_a);
-        let b = min(self.end, self.start + pos_b);
+        // TODO: handle partially cut-off graphemes
+        let gs = self.rope.char_index_to_grapheme_index(self.start);
+        let ge = self.rope.char_index_to_grapheme_index(self.end);
+        
+        let a = min(ge, gs + pos_a);
+        let b = min(ge, gs + pos_b);
         
         self.rope.grapheme_iter_between_indices(a, b)
     }
     
     
     pub fn char_at_index(&self, index: usize) -> char {
-        unimplemented!()
+        self.rope.char_at_index(self.start+index)
     }
     
     pub fn grapheme_at_index(&self, index: usize) -> &'a str {
-        self.rope.grapheme_at_index(self.start+index)
+        // TODO: handle partially cut-off graphemes
+        let gs = self.rope.char_index_to_grapheme_index(self.start);
+        self.rope.grapheme_at_index(gs+index)
     }
     
     
-    // TODO: change to work in terms of char indices instead of
-    // grapheme indices
     pub fn slice(&self, pos_a: usize, pos_b: usize) -> RopeSlice<'a> {
         let a = min(self.end, self.start + pos_a);
         let b = min(self.end, self.start + pos_b);

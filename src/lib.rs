@@ -362,6 +362,9 @@ impl Rope {
     
     
     /// Inserts the given text at the given char index.
+    /// For small lengths of 'text' runs in O(log N) time.
+    /// For large lengths of 'text', dunno.  But it seems to perform
+    /// sub-linearly, at least.
     pub fn insert_text_at_char_index(&mut self, text: &str, pos: usize) {
         let mut leaf_insert = false;
         
@@ -428,6 +431,10 @@ impl Rope {
     
     
     /// Removes the text between the given char indices.
+    /// For small distances between pos_a and pos_b runs in O(log N) time.
+    /// For large distances, dunno.  If it becomes a performance bottleneck,
+    /// can special-case that to two splits and an append, which are all
+    /// sublinear.
     pub fn remove_text_between_char_indices(&mut self, pos_a: usize, pos_b: usize) {
         // Bounds checks
         if pos_a > pos_b {
@@ -462,9 +469,6 @@ impl Rope {
     
     
     /// Inserts the given text at the given grapheme index.
-    /// For small lengths of 'text' runs in O(log N) time.
-    /// For large lengths of 'text', dunno.  But it seems to perform
-    /// sub-linearly, at least.
     pub fn insert_text_at_grapheme_index(&mut self, text: &str, pos: usize) {
         let cpos = self.grapheme_index_to_char_index(pos);
         
@@ -473,10 +477,6 @@ impl Rope {
     
     
     /// Removes the text between grapheme indices pos_a and pos_b.
-    /// For small distances between pos_a and pos_b runs in O(log N) time.
-    /// For large distances, dunno.  If it becomes a performance bottleneck,
-    /// can special-case that to two splits and an append, which are all
-    /// sublinear.
     pub fn remove_text_between_grapheme_indices(&mut self, pos_a: usize, pos_b: usize) {
         let cpos_a = self.grapheme_index_to_char_index(pos_a);
         let cpos_b = self.grapheme_index_to_char_index(pos_b);

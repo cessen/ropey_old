@@ -95,15 +95,35 @@ fn counts() {
 
 
 #[test]
-fn index() {
-    let rope = Rope::from_str("Hel世界lo world!");
+fn grapheme_at_index() {
+    let rope = Rope::from_str("Hel世界lo\u{000D}\u{000A}world!");
     
-    assert_eq!(rope.char_count(), 14);
+    assert_eq!(rope.char_count(), 15);
     assert_eq!(rope.grapheme_count(), 14);
-    assert_eq!(rope.line_count(), 1);
+    assert_eq!(rope.line_count(), 2);
     
-    assert_eq!("H", &rope[0]);
-    assert_eq!("界", &rope[4]);
+    assert_eq!("H", rope.grapheme_at_index(0));
+    assert_eq!("界", rope.grapheme_at_index(4));
+    assert_eq!("\u{000D}\u{000A}", rope.grapheme_at_index(7));
+    assert_eq!("w", rope.grapheme_at_index(8));
+    assert_eq!("!", rope.grapheme_at_index(13));
+}
+
+
+#[test]
+fn char_at_index() {
+    let rope = Rope::from_str("Hel世界lo\u{000D}\u{000A}world!");
+    
+    assert_eq!(rope.char_count(), 15);
+    assert_eq!(rope.grapheme_count(), 14);
+    assert_eq!(rope.line_count(), 2);
+    
+    assert_eq!('H', rope.char_at_index(0));
+    assert_eq!('界', rope.char_at_index(4));
+    assert_eq!('\u{000D}', rope.char_at_index(7));
+    assert_eq!('\u{000A}', rope.char_at_index(8));
+    assert_eq!('w', rope.char_at_index(9));
+    assert_eq!('!', rope.char_at_index(14));
 }
 
 

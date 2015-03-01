@@ -28,7 +28,7 @@ use string_utils::{
 };
 
 
-pub const MIN_NODE_SIZE: usize = 1;
+pub const MIN_NODE_SIZE: usize = 64;
 pub const MAX_NODE_SIZE: usize = MIN_NODE_SIZE * 2;
 
 
@@ -304,12 +304,60 @@ impl Rope {
     
     
     pub fn char_at_index(&self, index: usize) -> char {
-        unimplemented!()
+        if index >= self.char_count() {
+            panic!("Rope::char_at_index(): attempting to fetch char that is outside the bounds of the text.");
+        }
+        
+        match self.data {
+            RopeData::Leaf(ref text) => {
+                let mut i: usize = 0;
+                for c in text.chars() {
+                    if i == index {
+                        return c;
+                    }
+                    i += 1;
+                }
+                unreachable!();
+            },
+            
+            RopeData::Branch(ref left, ref right) => {
+                if index < left.char_count() {
+                    return left.char_at_index(index);
+                }
+                else {
+                    return right.char_at_index(index - left.char_count());
+                }
+            },
+        }
     }
     
     
     pub fn grapheme_at_index<'a>(&'a self, index: usize) -> &'a str {
-        &self[index]
+        if index >= self.grapheme_count() {
+            panic!("Rope::grapheme_at_index(): attempting to fetch grapheme that is outside the bounds of the text.");
+        }
+        
+        match self.data {
+            RopeData::Leaf(ref text) => {
+                let mut i: usize = 0;
+                for g in text.graphemes(true) {
+                    if i == index {
+                        return g;
+                    }
+                    i += 1;
+                }
+                unreachable!();
+            },
+            
+            RopeData::Branch(ref left, ref right) => {
+                if index < left.grapheme_count() {
+                    return left.grapheme_at_index(index);
+                }
+                else {
+                    return right.grapheme_at_index(index - left.grapheme_count());
+                }
+            },
+        }
     }
     
     
@@ -991,42 +1039,6 @@ impl Rope {
 }
 
 
-// Direct indexing to graphemes in the rope
-// TODO: change to work in terms of chars, since they're the atomic unit of
-// a Rope.
-impl Index<usize> for Rope {
-    type Output = str;
-    
-    fn index<'a>(&'a self, index: &usize) -> &'a str {
-        if *index >= self.grapheme_count() {
-            panic!("Rope::Index: attempting to fetch grapheme that outside the bounds of the text.");
-        }
-        
-        match self.data {
-            RopeData::Leaf(ref text) => {
-                let mut i: usize = 0;
-                for g in text.graphemes(true) {
-                    if i == *index {
-                        return &g;
-                    }
-                    i += 1;
-                }
-                unreachable!();
-            },
-            
-            RopeData::Branch(ref left, ref right) => {
-                if *index < left.grapheme_count() {
-                    return &left[*index];
-                }
-                else {
-                    return &right[*index - left.grapheme_count()];
-                }
-            },
-        }
-    }
-}
-
-
 
 
 //=============================================================
@@ -1210,7 +1222,7 @@ impl<'a> RopeSlice<'a> {
     }
     
     pub fn grapheme_at_index(&self, index: usize) -> &'a str {
-        &self.rope[self.start+index]
+        self.rope.grapheme_at_index(self.start+index)
     }
     
     

@@ -144,21 +144,6 @@ impl Rope {
         return rope;
     }
     
-    pub fn from_str_with_count(s: &str, c_count: usize, g_count: usize, le_count: usize) -> Rope {
-        if g_count <= MAX_NODE_SIZE {
-            Rope {
-                data: RopeData::Leaf(String::from_str(s)),
-                char_count_: c_count,
-                grapheme_count_: g_count,
-                line_ending_count: le_count,
-                tree_height: 1,
-            }
-        }
-        else {
-            Rope::from_str(s)
-        }
-    }
-    
     /// Creates a new rope from a string, consuming the string
     pub fn from_string(s: String) -> Rope {
         // TODO: special case short strings?
@@ -229,6 +214,39 @@ impl Rope {
     }
     
     
+    /// Returns the index of the line that the given char index is on.
+    pub fn char_index_to_line_index(&self, pos: usize) -> usize {
+        match self.data {
+            RopeData::Leaf(ref text) => {
+                let mut ci = 0;
+                let mut lei = 0;
+                for g in text.as_slice().graphemes(true) {
+                    if ci == pos {
+                        break;
+                    }
+                    ci += char_count(g);
+                    if ci > pos {
+                        break;
+                    }
+                    if is_line_ending(g) {
+                        lei += 1;
+                    }
+                }
+                return lei;
+            },
+            
+            RopeData::Branch(ref left, ref right) => {
+                if pos < left.char_count_ {
+                    return left.char_index_to_line_index(pos);
+                }
+                else {
+                    return right.char_index_to_line_index(pos - left.char_count_) + left.line_ending_count;
+                }
+            },
+        }
+    }
+    
+    
     /// Returns the char index at the start of the given line index.
     pub fn line_index_to_char_index(&self, li: usize) -> usize {
         // Bounds check
@@ -264,39 +282,6 @@ impl Rope {
                 }
                 else {
                     return right.line_index_to_char_index(li - left.line_ending_count) + left.char_count_;
-                }
-            },
-        }
-    }
-    
-    
-    /// Returns the index of the line that the given char index is on.
-    pub fn char_index_to_line_index(&self, pos: usize) -> usize {
-        match self.data {
-            RopeData::Leaf(ref text) => {
-                let mut ci = 0;
-                let mut lei = 0;
-                for g in text.as_slice().graphemes(true) {
-                    if ci == pos {
-                        break;
-                    }
-                    ci += char_count(g);
-                    if ci > pos {
-                        break;
-                    }
-                    if is_line_ending(g) {
-                        lei += 1;
-                    }
-                }
-                return lei;
-            },
-            
-            RopeData::Branch(ref left, ref right) => {
-                if pos < left.char_count_ {
-                    return left.char_index_to_line_index(pos);
-                }
-                else {
-                    return right.char_index_to_line_index(pos - left.char_count_) + left.line_ending_count;
                 }
             },
         }
@@ -468,23 +453,6 @@ impl Rope {
     }
     
     
-    /// Inserts the given text at the given grapheme index.
-    pub fn insert_text_at_grapheme_index(&mut self, text: &str, pos: usize) {
-        let cpos = self.grapheme_index_to_char_index(pos);
-        
-        self.insert_text_at_char_index(text, cpos);
-    }
-    
-    
-    /// Removes the text between grapheme indices pos_a and pos_b.
-    pub fn remove_text_between_grapheme_indices(&mut self, pos_a: usize, pos_b: usize) {
-        let cpos_a = self.grapheme_index_to_char_index(pos_a);
-        let cpos_b = self.grapheme_index_to_char_index(pos_b);
-        
-        self.remove_text_between_char_indices(cpos_a, cpos_b);
-    }
-    
-    
     /// Splits a rope into two pieces from the given char index.
     /// The first piece remains in this rope, the second piece is returned
     /// as a new rope.
@@ -498,18 +466,6 @@ impl Rope {
         
         mem::swap(self, &mut left);
         return right;
-    }
-    
-    
-    /// Splits a rope into two pieces from the given grapheme index.
-    /// The first piece remains in this rope, the second piece is returned
-    /// as a new rope.
-    /// I _think_ this runs in O(log N) time, but this needs more analysis to
-    /// be sure.  It is at least sublinear.
-    pub fn split_at_grapheme_index(&mut self, pos: usize) -> Rope {
-        let cpos = self.grapheme_index_to_char_index(pos);
-        
-        return self.split_at_char_index(cpos);
     }
     
 

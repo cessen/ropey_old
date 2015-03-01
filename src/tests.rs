@@ -665,46 +665,6 @@ fn insert_text_at_char_index_5() {
 
 
 #[test]
-fn insert_text_at_grapheme_index_1() {
-    let mut rope = Rope::from_str("Hello there!\u{000D}\u{000A}How are you?");
-    
-    rope.insert_text_at_grapheme_index("Z", 0);
-    
-    assert_eq!(rope.to_string(), "ZHello there!\u{000D}\u{000A}How are you?".to_string());
-}
-
-
-#[test]
-fn insert_text_at_grapheme_index_2() {
-    let mut rope = Rope::from_str("Hello there!\u{000D}\u{000A}How are you?");
-    
-    rope.insert_text_at_grapheme_index("Z", 12);
-    
-    assert_eq!(rope.to_string(), "Hello there!Z\u{000D}\u{000A}How are you?".to_string());
-}
-
-
-#[test]
-fn insert_text_at_grapheme_index_3() {
-    let mut rope = Rope::from_str("Hello there!\u{000D}\u{000A}How are you?");
-    
-    rope.insert_text_at_grapheme_index("Z", 13);
-    
-    assert_eq!(rope.to_string(), "Hello there!\u{000D}\u{000A}ZHow are you?".to_string());
-}
-
-
-#[test]
-fn insert_text_at_grapheme_index_4() {
-    let mut rope = Rope::from_str("Hello there!\u{000D}\u{000A}How are you?");
-    
-    rope.insert_text_at_grapheme_index("Z", 25);
-    
-    assert_eq!(rope.to_string(), "Hello there!\u{000D}\u{000A}How are you?Z".to_string());
-}
-
-
-#[test]
 fn remove_text_between_char_indices_1() {
     let mut rope = Rope::from_str("Hello there!\u{000D}\u{000A}How are you?");
     
@@ -731,46 +691,6 @@ fn remove_text_between_char_indices_3() {
     rope.remove_text_between_char_indices(13, 14);
     
     assert_eq!(rope.to_string(), "Hello there!\u{000D}How are you?".to_string());
-}
-
-
-#[test]
-fn remove_text_between_char_indices_4() {
-    let mut rope = Rope::from_str("Hello there!\u{000D}\u{000A}How are you?");
-    
-    rope.remove_text_between_char_indices(14, 15);
-    
-    assert_eq!(rope.to_string(), "Hello there!\u{000D}\u{000A}ow are you?".to_string());
-}
-
-
-#[test]
-fn remove_text_between_grapheme_indices_1() {
-    let mut rope = Rope::from_str("Hello there!\u{000D}\u{000A}How are you?");
-    
-    rope.remove_text_between_grapheme_indices(0, 1);
-    
-    assert_eq!(rope.to_string(), "ello there!\u{000D}\u{000A}How are you?".to_string());
-}
-
-
-#[test]
-fn remove_text_between_grapheme_indices_2() {
-    let mut rope = Rope::from_str("Hello there!\u{000D}\u{000A}How are you?");
-    
-    rope.remove_text_between_grapheme_indices(12, 13);
-    
-    assert_eq!(rope.to_string(), "Hello there!How are you?".to_string());
-}
-
-
-#[test]
-fn remove_text_between_grapheme_indices_3() {
-    let mut rope = Rope::from_str("Hello there!\u{000D}\u{000A}How are you?");
-    
-    rope.remove_text_between_grapheme_indices(13, 14);
-    
-    assert_eq!(rope.to_string(), "Hello there!\u{000D}\u{000A}ow are you?".to_string());
 }
 
 

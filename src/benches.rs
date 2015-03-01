@@ -126,7 +126,7 @@ fn insert_text_bench_1(b: &mut Bencher) {
     b.iter(|| {
         let mut rope = Rope::new();
         for _ in 0..200 {
-            rope.insert_text_at_grapheme_index("Hi", 0);
+            rope.insert_text_at_char_index("Hi", 0);
         }
     });
 }
@@ -137,7 +137,7 @@ fn insert_text_bench_2(b: &mut Bencher) {
     b.iter(|| {
         let mut rope = Rope::new();
         for i in 0..200 {
-            rope.insert_text_at_grapheme_index("Hi", i/2);
+            rope.insert_text_at_char_index("Hi", i/2);
         }
     });
 }
@@ -148,7 +148,7 @@ fn insert_text_bench_3(b: &mut Bencher) {
     b.iter(|| {
         let mut rope = Rope::new();
         for i in 0..200 {
-            rope.insert_text_at_grapheme_index("Hi", i);
+            rope.insert_text_at_char_index("Hi", i);
         }
     });
 }
@@ -159,7 +159,7 @@ fn insert_large_text_bench_1(b: &mut Bencher) {
     let s = String::from_utf8(vec!['c' as u8; 3457]).unwrap();
     b.iter(|| {
         let mut rope = Rope::from_str("Hello there!");
-        rope.insert_text_at_grapheme_index(s.as_slice(), 0);
+        rope.insert_text_at_char_index(s.as_slice(), 0);
     });
 }
 
@@ -169,7 +169,7 @@ fn insert_large_text_bench_2(b: &mut Bencher) {
     let s = String::from_utf8(vec!['c' as u8; 3457]).unwrap();
     b.iter(|| {
         let mut rope = Rope::from_str("Hello there!");
-        rope.insert_text_at_grapheme_index(s.as_slice(), 3);
+        rope.insert_text_at_char_index(s.as_slice(), 3);
     });
 }
 
@@ -179,7 +179,7 @@ fn insert_large_text_bench_3(b: &mut Bencher) {
     let s = String::from_utf8(vec!['c' as u8; 3457]).unwrap();
     b.iter(|| {
         let mut rope = Rope::from_str("Hello there!");
-        rope.insert_text_at_grapheme_index(s.as_slice(), 12);
+        rope.insert_text_at_char_index(s.as_slice(), 12);
     });
 }
 
@@ -189,7 +189,7 @@ fn remove_text_bench_1(b: &mut Bencher) {
     b.iter(|| {
         let mut rope = Rope::from_str("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
         for _ in 0..200 {
-            rope.remove_text_between_grapheme_indices(0, 2);
+            rope.remove_text_between_char_indices(0, 2);
         }
     });
 }
@@ -200,7 +200,7 @@ fn remove_text_bench_2(b: &mut Bencher) {
     b.iter(|| {
         let mut rope = Rope::from_str("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
         for i in 0..200 {
-            rope.remove_text_between_grapheme_indices((200-i)-1, (200-i)+1);
+            rope.remove_text_between_char_indices((200-i)-1, (200-i)+1);
         }
     });
 }
@@ -211,7 +211,7 @@ fn remove_text_bench_3(b: &mut Bencher) {
     b.iter(|| {
         let mut rope = Rope::from_str("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
         for i in 0..200 {
-            rope.remove_text_between_grapheme_indices(400-(i*2)-2, 400-(i*2));
+            rope.remove_text_between_char_indices(400-(i*2)-2, 400-(i*2));
         }
     });
 }
@@ -248,18 +248,18 @@ fn append_3(b: &mut Bencher) {
 
 
 #[bench]
-fn split_at_grapheme_index_1(b: &mut Bencher) {
+fn split_at_char_index_1(b: &mut Bencher) {
     b.iter(|| {
         let mut left = Rope::from_str(String::from_utf8(vec!['c' as u8; 7649]).unwrap().as_slice());
-        let _ = left.split_at_grapheme_index(3617);
+        let _ = left.split_at_char_index(3617);
     });
 }
 
 
 #[bench]
-fn split_at_grapheme_index_2(b: &mut Bencher) {
+fn split_at_char_index_2(b: &mut Bencher) {
     b.iter(|| {
         let mut left = Rope::from_str(String::from_utf8(vec!['c' as u8; 7649]).unwrap().as_slice());
-        let _ = left.split_at_grapheme_index(263);
+        let _ = left.split_at_char_index(263);
     });
 }

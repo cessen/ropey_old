@@ -21,7 +21,7 @@ use string_utils::{
     char_pos_to_grapheme_pos,
     grapheme_pos_to_char_pos,
     insert_text_at_char_index,
-    remove_text_between_grapheme_indices,
+    remove_text_between_char_indices,
     split_string_at_char_index,
     split_string_at_grapheme_index,
     is_line_ending,
@@ -417,7 +417,35 @@ impl Rope {
     
     /// Removes the text between the given char indices.
     pub fn remove_text_between_char_indices(&mut self, pos_a: usize, pos_b: usize) {
-        unimplemented!()
+        // Bounds checks
+        if pos_a > pos_b {
+            panic!("Rope::remove_text_between_char_indices(): pos_a must be less than or equal to pos_b.");
+        }
+        if pos_b > self.char_count_ {
+            panic!("Rope::remove_text_between_char_indices(): attempt to remove text after end of node text.");
+        }
+        
+        match self.data {
+            RopeData::Leaf(ref mut text) => {
+                remove_text_between_char_indices(text, pos_a, pos_b);
+            },
+            
+            RopeData::Branch(ref mut left, ref mut right) => {
+                let lcc = left.char_count_;
+                
+                if pos_a < lcc {
+                    left.remove_text_between_char_indices(pos_a, min(pos_b, lcc));
+                }
+                
+                if pos_b > lcc {
+                    right.remove_text_between_char_indices(pos_a - min(pos_a, lcc), pos_b - lcc);
+                }
+            }
+        }
+        
+        self.update_stats();
+        self.merge_if_too_small();
+        self.rebalance();
     }
     
     
@@ -438,35 +466,10 @@ impl Rope {
     /// can special-case that to two splits and an append, which are all
     /// sublinear.
     pub fn remove_text_between_grapheme_indices(&mut self, pos_a: usize, pos_b: usize) {
-        // Bounds checks
-        if pos_a > pos_b {
-            panic!("Rope::remove_text_between_grapheme_indices(): pos_a must be less than or equal to pos_b.");
-        }
-        if pos_b > self.grapheme_count_ {
-            panic!("Rope::remove_text_between_grapheme_indices(): attempt to remove text after end of node text.");
-        }
+        let cpos_a = self.grapheme_index_to_char_index(pos_a);
+        let cpos_b = self.grapheme_index_to_char_index(pos_b);
         
-        match self.data {
-            RopeData::Leaf(ref mut text) => {
-                remove_text_between_grapheme_indices(text, pos_a, pos_b);
-            },
-            
-            RopeData::Branch(ref mut left, ref mut right) => {
-                let lgc = left.grapheme_count_;
-                
-                if pos_a < lgc {
-                    left.remove_text_between_grapheme_indices(pos_a, min(pos_b, lgc));
-                }
-                
-                if pos_b > lgc {
-                    right.remove_text_between_grapheme_indices(pos_a - min(pos_a, lgc), pos_b - lgc);
-                }
-            }
-        }
-        
-        self.update_stats();
-        self.merge_if_too_small();
-        self.rebalance();
+        self.remove_text_between_char_indices(cpos_a, cpos_b);
     }
     
     

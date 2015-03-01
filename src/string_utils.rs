@@ -217,6 +217,38 @@ pub fn insert_text_at_grapheme_index(s: &mut String, text: &str, pos: usize) {
     }
 }
 
+/// Removes the text between the given char indices in the given string.
+pub fn remove_text_between_char_indices(s: &mut String, pos_a: usize, pos_b: usize) {
+    // Bounds checks
+    assert!(pos_a <= pos_b, "remove_text_between_char_indices(): pos_a must be less than or equal to pos_b.");
+    
+    if pos_a == pos_b {
+        return;
+    }
+    
+    // Find removal positions in bytes
+    // TODO: get both of these in a single pass
+    let byte_pos_a = char_pos_to_byte_pos(s.as_slice(), pos_a);
+    let byte_pos_b = char_pos_to_byte_pos(s.as_slice(), pos_b);
+    
+    // Get byte vec of string
+    let byte_vec = unsafe { s.as_mut_vec() };
+    
+    // Move bytes to fill in the gap left by the removed bytes
+    let mut from = byte_pos_b;
+    let mut to = byte_pos_a;
+    while from < byte_vec.len() {
+        byte_vec[to] = byte_vec[from];
+        
+        from += 1;
+        to += 1;
+    }
+    
+    // Remove data from the end
+    let final_text_size = byte_vec.len() + byte_pos_a - byte_pos_b;
+    byte_vec.truncate(final_text_size);
+}
+
 /// Removes the text between the given grapheme indices in the given string.
 pub fn remove_text_between_grapheme_indices(s: &mut String, pos_a: usize, pos_b: usize) {
     // Bounds checks

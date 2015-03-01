@@ -715,6 +715,76 @@ fn insert_text_at_grapheme_index_4() {
 
 
 #[test]
+fn remove_text_between_char_indices_1() {
+    let mut rope = Rope::from_str("Hello there!\u{000D}\u{000A}How are you?");
+    
+    rope.remove_text_between_char_indices(0, 1);
+    
+    assert_eq!(rope.to_string(), "ello there!\u{000D}\u{000A}How are you?".to_string());
+}
+
+
+#[test]
+fn remove_text_between_char_indices_2() {
+    let mut rope = Rope::from_str("Hello there!\u{000D}\u{000A}How are you?");
+    
+    rope.remove_text_between_char_indices(12, 13);
+    
+    assert_eq!(rope.to_string(), "Hello there!\u{000A}How are you?".to_string());
+}
+
+
+#[test]
+fn remove_text_between_char_indices_3() {
+    let mut rope = Rope::from_str("Hello there!\u{000D}\u{000A}How are you?");
+    
+    rope.remove_text_between_char_indices(13, 14);
+    
+    assert_eq!(rope.to_string(), "Hello there!\u{000D}How are you?".to_string());
+}
+
+
+#[test]
+fn remove_text_between_char_indices_4() {
+    let mut rope = Rope::from_str("Hello there!\u{000D}\u{000A}How are you?");
+    
+    rope.remove_text_between_char_indices(14, 15);
+    
+    assert_eq!(rope.to_string(), "Hello there!\u{000D}\u{000A}ow are you?".to_string());
+}
+
+
+#[test]
+fn remove_text_between_grapheme_indices_1() {
+    let mut rope = Rope::from_str("Hello there!\u{000D}\u{000A}How are you?");
+    
+    rope.remove_text_between_grapheme_indices(0, 1);
+    
+    assert_eq!(rope.to_string(), "ello there!\u{000D}\u{000A}How are you?".to_string());
+}
+
+
+#[test]
+fn remove_text_between_grapheme_indices_2() {
+    let mut rope = Rope::from_str("Hello there!\u{000D}\u{000A}How are you?");
+    
+    rope.remove_text_between_grapheme_indices(12, 13);
+    
+    assert_eq!(rope.to_string(), "Hello there!How are you?".to_string());
+}
+
+
+#[test]
+fn remove_text_between_grapheme_indices_3() {
+    let mut rope = Rope::from_str("Hello there!\u{000D}\u{000A}How are you?");
+    
+    rope.remove_text_between_grapheme_indices(13, 14);
+    
+    assert_eq!(rope.to_string(), "Hello there!\u{000D}\u{000A}ow are you?".to_string());
+}
+
+
+#[test]
 fn insert_text() {
     let mut rope = Rope::new();
     
@@ -967,7 +1037,7 @@ fn insert_text_in_non_empty_buffer_7() {
 fn remove_text_1() {
     let mut rope = Rope::from_str("Hi\nthere\npeople\nof\nthe\nworld!");
     
-    rope.remove_text_between_grapheme_indices(0, 3);
+    rope.remove_text_between_char_indices(0, 3);
     
     let mut iter = rope.grapheme_iter();
     
@@ -1008,7 +1078,7 @@ fn remove_text_1() {
 fn remove_text_2() {
     let mut rope = Rope::from_str("Hi\nthere\npeople\nof\nthe\nworld!");
     
-    rope.remove_text_between_grapheme_indices(0, 12);
+    rope.remove_text_between_char_indices(0, 12);
     
     let mut iter = rope.grapheme_iter();
     
@@ -1040,7 +1110,7 @@ fn remove_text_2() {
 fn remove_text_3() {
     let mut rope = Rope::from_str("Hi\nthere\npeople\nof\nthe\nworld!");
     
-    rope.remove_text_between_grapheme_indices(5, 17);
+    rope.remove_text_between_char_indices(5, 17);
     
     let mut iter = rope.grapheme_iter();
     
@@ -1072,7 +1142,7 @@ fn remove_text_3() {
 fn remove_text_4() {
     let mut rope = Rope::from_str("Hi\nthere\npeople\nof\nthe\nworld!");
     
-    rope.remove_text_between_grapheme_indices(23, 29);
+    rope.remove_text_between_char_indices(23, 29);
     
     let mut iter = rope.grapheme_iter();
     
@@ -1110,7 +1180,7 @@ fn remove_text_4() {
 fn remove_text_5() {
     let mut rope = Rope::from_str("Hi\nthere\npeople\nof\nthe\nworld!");
     
-    rope.remove_text_between_grapheme_indices(17, 29);
+    rope.remove_text_between_char_indices(17, 29);
     
     let mut iter = rope.grapheme_iter();
     
@@ -1142,7 +1212,7 @@ fn remove_text_5() {
 fn remove_text_6() {
     let mut rope = Rope::from_str("Hello\nworld!");
     
-    rope.remove_text_between_grapheme_indices(3, 12);
+    rope.remove_text_between_char_indices(3, 12);
     
     let mut iter = rope.grapheme_iter();
     
@@ -1160,7 +1230,7 @@ fn remove_text_6() {
 fn remove_text_7() {
     let mut rope = Rope::from_str("Hi\nthere\nworld!");
     
-    rope.remove_text_between_grapheme_indices(5, 15);
+    rope.remove_text_between_char_indices(5, 15);
     
     let mut iter = rope.grapheme_iter();
     
@@ -1180,7 +1250,7 @@ fn remove_text_7() {
 fn remove_text_8() {
     let mut rope = Rope::from_str("Hello\nworld!");
     
-    rope.remove_text_between_grapheme_indices(3, 11);
+    rope.remove_text_between_char_indices(3, 11);
     
     let mut iter = rope.grapheme_iter();
     
@@ -1199,7 +1269,7 @@ fn remove_text_8() {
 fn remove_text_9() {
     let mut rope = Rope::from_str("Hello\nworld!");
     
-    rope.remove_text_between_grapheme_indices(8, 12);
+    rope.remove_text_between_char_indices(8, 12);
     
     let mut iter = rope.grapheme_iter();
     
@@ -1222,7 +1292,7 @@ fn remove_text_9() {
 fn remove_text_10() {
     let mut rope = Rope::from_str("12\n34\n56\n78");
     
-    rope.remove_text_between_grapheme_indices(4, 11);
+    rope.remove_text_between_char_indices(4, 11);
     
     let mut iter = rope.grapheme_iter();
     
@@ -1241,7 +1311,7 @@ fn remove_text_10() {
 fn remove_text_11() {
     let mut rope = Rope::from_str("1234567890");
     
-    rope.remove_text_between_grapheme_indices(9, 10);
+    rope.remove_text_between_char_indices(9, 10);
     
     let mut iter = rope.grapheme_iter();
     

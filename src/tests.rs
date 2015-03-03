@@ -991,6 +991,22 @@ fn append_5() {
 
 
 #[test]
+fn append_6() {
+    let mut rope1 = Rope::from_str("Hello there everyone!\u{000D}");
+    let rope2 = Rope::from_str("\u{000A}How is everyone doing?");
+    
+    assert_eq!(rope1.grapheme_count(), 22);
+    assert_eq!(rope2.grapheme_count(), 23);
+    
+    rope1.append(rope2);
+    
+    assert_eq!(rope1.to_string(), "Hello there everyone!\u{000D}\u{000A}How is everyone doing?");
+    assert_eq!(rope1.grapheme_count(), 44);
+    assert_eq!(rope1.grapheme_at_index(21), "\u{000D}\u{000A}");
+}
+
+
+#[test]
 fn insert_text_at_char_index_1() {
     let mut rope = Rope::from_str("Hello there!\u{000D}\u{000A}How are you?");
     

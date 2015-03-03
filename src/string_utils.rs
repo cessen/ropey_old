@@ -73,6 +73,14 @@ pub fn char_grapheme_line_ending_count(text: &str) -> (usize, usize, usize) {
     return (cc, gc, lec);
 }
 
+pub fn graphemes_are_mergeable(s1: &str, s2: &str) -> bool {
+    let mut s = String::with_capacity(s1.len() + s2.len());
+    s.push_str(s1);
+    s.push_str(s2);
+    
+    return grapheme_count(&s[..]) == 1;
+}
+
 pub fn char_pos_to_byte_pos(text: &str, pos: usize) -> usize {
     let mut i: usize = 0;
     
@@ -325,6 +333,13 @@ pub fn split_string_at_grapheme_index(s1: &mut String, pos: usize) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    
+    #[test]
+    fn graphemes_are_mergeable_1() {
+        assert!(graphemes_are_mergeable("\u{000D}", "\u{000A}"));
+        assert!(!graphemes_are_mergeable("\u{000A}", "\u{000D}"));
+        assert!(!graphemes_are_mergeable("a", "b"));
+    }
     
     #[test]
     fn char_pos_to_grapheme_pos_1() {

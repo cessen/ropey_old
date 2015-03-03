@@ -17,6 +17,7 @@ use string_utils::{
     char_count,
     char_grapheme_line_ending_count,
     grapheme_count_is_less_than,
+    graphemes_are_mergeable,
     char_pos_to_byte_pos,
     char_pos_to_grapheme_pos,
     grapheme_pos_to_char_pos,
@@ -490,13 +491,18 @@ impl Rope {
             return;
         }
         else if self.tree_height > rope.tree_height {
+            let cc = self.char_count_;
             self.append_right(rope);
+            self.repair_grapheme_seam(cc);
         }
         else {
+            let cc = self.char_count_;
             let mut rope = rope;
             mem::swap(self, &mut rope);
             self.append_left(rope);
+            self.repair_grapheme_seam(cc);
         }
+        
     }    
     
     
@@ -722,9 +728,9 @@ impl Rope {
                 let mut new_rope_r = Rope::from_string(r_text);
                 
                 // Append the nodes to their respective sides
-                left.append(new_rope_l);
+                left.append_right(new_rope_l);
                 mem::swap(right, &mut new_rope_r);
-                right.append(new_rope_r);
+                right.append_left(new_rope_r);
             },
             
             RopeData::Branch(ref mut left_b, ref mut right_b) => {
@@ -737,7 +743,7 @@ impl Rope {
                 if pos < l.char_count_ {
                     // Append the right split to the right side
                     mem::swap(right, &mut r);
-                    right.append(r);
+                    right.append_left(r);
                     
                     // Recurse
                     if let RopeData::Branch(_, ref mut new_left) = left.data {
@@ -761,7 +767,7 @@ impl Rope {
                 else {
                     // Append the left split to the left side
                     let new_pos = pos - l.char_count_;
-                    left.append(l);
+                    left.append_right(l);
                     
                     // Recurse
                     if let RopeData::Branch(_, ref mut new_left) = left.data {
@@ -1032,6 +1038,77 @@ impl Rope {
                 length: None,
             };
         };
+    }
+    
+    
+    /// Returns whether the given char index lies on a leaf node boundary.
+    fn is_leaf_boundary(&self, index: usize) -> bool {
+        if index == 0 || index == self.char_count_ {
+            return true;
+        }
+        else {
+            match self.data {
+                RopeData::Leaf(_) => {
+                    return false;
+                },
+                
+                RopeData::Branch(ref left, ref right) => {
+                    if index < left.char_count_ {
+                        return left.is_leaf_boundary(index);
+                    }
+                    else {
+                        return right.is_leaf_boundary(index - left.char_count_);
+                    }
+                }
+            }
+        }
+    }
+    
+    
+    fn append_to_leaf(&mut self, text: &str, index: usize) {
+        match self.data {
+            RopeData::Leaf(ref mut l_text) => {
+                l_text.push_str(text);
+            },
+            
+            RopeData::Branch(ref mut left, ref mut right) => {
+                if index <= left.char_count_ {
+                    left.append_to_leaf(text, index);
+                }
+                else {
+                    right.append_to_leaf(text, index - left.char_count_);
+                }
+            }
+        }
+        
+        self.update_stats();
+    }
+    
+    
+    /// Repairs an erroneous grapheme separation that can occur at
+    /// leaf node boundaries.  The index given is the char index of the
+    /// possible seam.
+    fn repair_grapheme_seam(&mut self, index: usize) {
+        if index == 0 || index == self.char_count_ {
+            return;
+        }
+        
+        let gi = self.char_index_to_grapheme_index(index);
+        
+        if self.is_leaf_boundary(index) && graphemes_are_mergeable(self.grapheme_at_index(gi-1), self.grapheme_at_index(gi)) {
+            let c1 = self.grapheme_index_to_char_index(gi);
+            let c2 = self.grapheme_index_to_char_index(gi + 1);
+            
+            // Get the grapheme on the right
+            let mut s = String::new();
+            s.push_str(self.grapheme_at_index(gi));
+            
+            // Append it to the left
+            self.append_to_leaf(&s[..], index);
+            
+            // Remove the duplicate
+            self.remove_text_between_char_indices(c2, c2 + (c2 - c1));
+        }
     }
     
     

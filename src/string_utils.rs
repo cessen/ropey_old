@@ -375,4 +375,38 @@ mod tests {
         
         assert_eq!(char_pos_to_grapheme_pos(s, 0), 0);
     }
+    
+    #[test]
+    fn grapheme_pos_to_char_pos_1() {
+        let s = "Hello\u{000D}\u{000A}there!";
+        
+        assert_eq!(grapheme_pos_to_char_pos(s, 0), 0);
+        assert_eq!(grapheme_pos_to_char_pos(s, 5), 5);
+        assert_eq!(grapheme_pos_to_char_pos(s, 6), 7);
+        assert_eq!(grapheme_pos_to_char_pos(s, 8), 9);
+        assert_eq!(grapheme_pos_to_char_pos(s, 12), 13);
+    }
+    
+    #[test]
+    fn grapheme_pos_to_char_pos_2() {
+        let s = "a";
+        
+        assert_eq!(grapheme_pos_to_char_pos(s, 0), 0);
+        assert_eq!(grapheme_pos_to_char_pos(s, 1), 1);
+    }
+    
+    #[test]
+    fn grapheme_pos_to_char_pos_3() {
+        let s = "\u{000D}\u{000A}";
+        
+        assert_eq!(grapheme_pos_to_char_pos(s, 0), 0);
+        assert_eq!(grapheme_pos_to_char_pos(s, 1), 2);
+    }
+    
+    #[test]
+    fn grapheme_pos_to_char_pos_4() {
+        let s = "";
+        
+        assert_eq!(grapheme_pos_to_char_pos(s, 0), 0);
+    }
 }

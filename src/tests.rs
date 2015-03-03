@@ -377,7 +377,7 @@ fn slice_3() {
 #[test]
 fn slice_4() {
     let rope = Rope::from_str("Hello everyone!  How are you doing, eh?");
-    let s = rope.slice(21, 40);
+    let s = rope.slice(21, 39);
     
     let mut iter = s.char_iter();
     
@@ -408,7 +408,7 @@ fn slice_4() {
 #[test]
 fn slice_5() {
     let rope = Rope::from_str("Hello everyone!  How are you doing, eh?");
-    let s = rope.slice(21, 40);
+    let s = rope.slice(21, 39);
     let s2 = s.slice(3, 10);
     
     let mut iter = s2.char_iter();
@@ -487,7 +487,7 @@ fn slice_8() {
     let rope = Rope::from_str("Hello everyone!  How are you doing, eh?");
     let s = rope.slice(15, 39);
     
-    let mut iter = s.char_iter_between_indices(0, 25);
+    let mut iter = s.char_iter_between_indices(0, 24);
     
     assert!(Some(' ') == iter.next());
     assert!(Some(' ') == iter.next());

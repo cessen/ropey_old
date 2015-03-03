@@ -29,7 +29,7 @@ use string_utils::{
 };
 
 
-pub const MIN_NODE_SIZE: usize = 64;
+pub const MIN_NODE_SIZE: usize = 1;
 pub const MAX_NODE_SIZE: usize = MIN_NODE_SIZE * 2;
 
 
@@ -169,6 +169,9 @@ impl Rope {
     /// calls, because the char indices may split graphemes.
     /// Runs in O(log N) time.
     pub fn grapheme_count_in_char_range(&self, pos_a: usize, pos_b: usize) -> usize {
+        assert!(pos_a <= pos_b, "Rope::grapheme_count_in_char_range(): pos_a must be less than or equal to pos_b.");
+        assert!(pos_b <= self.char_count(), "Rope::grapheme_count_in_char_range(): attempted to get grapheme count beyond the end of the text.");
+        
         let ga = self.char_index_to_grapheme_index(pos_a);
         let gb = self.char_index_to_grapheme_index(pos_b);
         let cb = self.grapheme_index_to_char_index(gb);
@@ -185,6 +188,8 @@ impl Rope {
     /// Returns the index of the grapheme that the given char index is a
     /// part of.
     pub fn char_index_to_grapheme_index(&self, pos: usize) -> usize {
+        assert!(pos <= self.char_count(), "Rope::char_index_to_grapheme_index(): attempted to index beyond the end of the text.");
+        
         match self.data {
             RopeData::Leaf(ref text) => {
                 return char_pos_to_grapheme_pos(text, pos);
@@ -206,9 +211,7 @@ impl Rope {
     
     /// Returns the beginning char index of the given grapheme index.
     pub fn grapheme_index_to_char_index(&self, pos: usize) -> usize {
-        if pos > self.grapheme_count_ {
-            panic!("grapheme_index_to_char_index(): grapheme position off the end of the rope.");
-        }
+        assert!(pos <= self.grapheme_count(), "Rope::grapheme_index_to_char_index(): attempted to index beyond the end of the text.");
         
         match self.data {
             RopeData::Leaf(ref text) => {
@@ -231,6 +234,8 @@ impl Rope {
     
     /// Returns the index of the line that the given char index is on.
     pub fn char_index_to_line_index(&self, pos: usize) -> usize {
+        assert!(pos <= self.char_count(), "Rope::char_index_to_line_index(): attempted to index beyond the end of the text.");
+    
         match self.data {
             RopeData::Leaf(ref text) => {
                 let mut ci = 0;
@@ -264,10 +269,7 @@ impl Rope {
     
     /// Returns the char index at the start of the given line index.
     pub fn line_index_to_char_index(&self, li: usize) -> usize {
-        // Bounds check
-        if li > self.line_ending_count_ {
-            panic!("Rope::line_index_to_char_index: line index is out of bounds.");
-        }
+        assert!(li <= self.line_ending_count(), "Rope::line_index_to_char_index(): attempted to index beyond the end of the text.");
         
         // Special case for the beginning of the rope
         if li == 0 {
@@ -304,9 +306,7 @@ impl Rope {
     
     
     pub fn char_at_index(&self, index: usize) -> char {
-        if index >= self.char_count() {
-            panic!("Rope::char_at_index(): attempting to fetch char that is outside the bounds of the text.");
-        }
+        assert!(index < self.char_count(), "Rope::char_at_index(): attempted to fetch char that is outside the bounds of the text.");
         
         match self.data {
             RopeData::Leaf(ref text) => {
@@ -333,9 +333,7 @@ impl Rope {
     
     
     pub fn grapheme_at_index<'a>(&'a self, index: usize) -> &'a str {
-        if index >= self.grapheme_count() {
-            panic!("Rope::grapheme_at_index(): attempting to fetch grapheme that is outside the bounds of the text.");
-        }
+        assert!(index < self.grapheme_count(), "Rope::grapheme_at_index(): attempted to fetch grapheme that is outside the bounds of the text.");
         
         match self.data {
             RopeData::Leaf(ref text) => {
@@ -366,6 +364,8 @@ impl Rope {
     /// For large lengths of 'text', dunno.  But it seems to perform
     /// sub-linearly, at least.
     pub fn insert_text_at_char_index(&mut self, text: &str, pos: usize) {
+        assert!(pos <= self.char_count(), "Rope::insert_text_at_char_index(): attempted to insert text at a position beyond the end of the text.");
+        
         let cc = self.char_count_; // Store the char count prior to the insertion
         
         let mut leaf_insert = false;
@@ -443,6 +443,9 @@ impl Rope {
     /// can special-case that to two splits and an append, which are all
     /// sublinear.
     pub fn remove_text_between_char_indices(&mut self, pos_a: usize, pos_b: usize) {
+        assert!(pos_a <= pos_b, "Rope::remove_text_between_char_indices(): pos_a must be less than or equal to pos_b.");
+        assert!(pos_b <= self.char_count(), "Rope::remove_text_between_char_indices(): attempted to remove text beyond the end of the text.");
+        
         self.remove_text_between_char_indices_without_seam_check(pos_a, pos_b);
         self.repair_grapheme_seam(pos_a);
     }
@@ -454,6 +457,8 @@ impl Rope {
     /// I _think_ this runs in O(log N) time, but this needs more analysis to
     /// be sure.  It is at least sublinear.
     pub fn split_at_char_index(&mut self, pos: usize) -> Rope {
+        assert!(pos <= self.char_count(), "Rope::split_at_char_index(): attempted to split text at a position beyond the end of the text.");
+    
         let mut left = Rope::new();
         let mut right = Rope::new();
         
@@ -493,8 +498,10 @@ impl Rope {
     
     
     /// Creates a chunk iter starting at the chunk containing the given
-    /// char index.  Returns the chunk and its starting char index.
+    /// char index.  Returns the chunk iter and its starting char index.
     pub fn chunk_iter_at_char_index<'a>(&'a self, index: usize) -> (usize, RopeChunkIter<'a>) {
+        assert!(index <= self.char_count(), "Rope::chunk_iter_at_char_index(): attempted to create an iterator starting beyond the end of the text.");
+        
         let mut node_stack: Vec<&'a Rope> = Vec::new();
         let mut cur_node = self;
         let mut char_i = index;
@@ -532,6 +539,8 @@ impl Rope {
     
     /// Creates an iterator starting at the given char index
     pub fn char_iter_at_index<'a>(&'a self, index: usize) -> RopeCharIter<'a> {
+        assert!(index <= self.char_count(), "Rope::char_iter_at_index(): attempted to create an iterator starting beyond the end of the text.");
+        
         let (char_i, mut chunk_iter) = self.chunk_iter_at_char_index(index);
         
         // Create the char iter for the current node
@@ -558,6 +567,9 @@ impl Rope {
     
     /// Creates an iterator that starts at pos_a and stops just before pos_b.
     pub fn char_iter_between_indices<'a>(&'a self, pos_a: usize, pos_b: usize) -> RopeCharIter<'a> {
+        assert!(pos_a <= pos_b, "Rope::char_iter_between_indices(): pos_a must be less than or equal to pos_b.");
+        assert!(pos_b <= self.char_count(), "Rope::char_iter_between_indices(): attempted to create an iterator starting beyond the end of the text.");
+    
         let mut iter = self.char_iter_at_index(pos_a);
         iter.length = Some(pos_b - pos_a);
         return iter;
@@ -572,6 +584,8 @@ impl Rope {
     
     /// Creates an iterator at the given grapheme index
     pub fn grapheme_iter_at_index<'a>(&'a self, index: usize) -> RopeGraphemeIter<'a> {
+        assert!(index <= self.grapheme_count(), "Rope::grapheme_iter_at_index(): attempted to create an iterator starting beyond the end of the text.");
+        
         let cindex = self.grapheme_index_to_char_index(index);
         return self.grapheme_iter_at_char_index(cindex);
     }
@@ -579,6 +593,9 @@ impl Rope {
     
     /// Creates an iterator that starts a pos_a and stops just before pos_b.
     pub fn grapheme_iter_between_indices<'a>(&'a self, pos_a: usize, pos_b: usize) -> RopeGraphemeIter<'a> {
+        assert!(pos_a <= pos_b, "Rope::grapheme_iter_between_indices(): pos_a must be less than or equal to pos_b.");
+        assert!(pos_b <= self.grapheme_count(), "Rope::grapheme_iter_between_indices(): attempted to create an iterator starting beyond the end of the text.");
+    
         let mut iter = self.grapheme_iter_at_index(pos_a);
         let cpos_a = self.grapheme_index_to_char_index(pos_a);
         let cpos_b = self.grapheme_index_to_char_index(pos_b);
@@ -599,6 +616,8 @@ impl Rope {
     /// Creates an iterator over the lines in the rope, starting at the given
     /// line index.
     pub fn line_iter_at_index<'a>(&'a self, index: usize) -> RopeLineIter<'a> {
+        assert!(index <= (self.line_ending_count()+1), "Rope::line_iter_at_index(): attempted to create an iterator starting beyond the end of the text.");
+        
         RopeLineIter {
             rope: self,
             li: index,
@@ -608,6 +627,9 @@ impl Rope {
     
     // Creates a slice into the Rope, between char indices pos_a and pos_b.
     pub fn slice<'a>(&'a self, pos_a: usize, pos_b: usize) -> RopeSlice<'a> {
+        assert!(pos_a <= pos_b, "Rope::slice(): pos_a must be less than or equal to pos_b.");
+        assert!(pos_b <= self.char_count(), "Rope::slice(): attempted to create a slice extending beyond the end of the text.");
+        
         let a = pos_a;
         let b = min(self.char_count_, pos_b);
         
@@ -1352,14 +1374,19 @@ impl<'a> RopeSlice<'a> {
     }
     
     pub fn char_iter_at_index(&self, pos: usize) -> RopeCharIter<'a> {
-        let a = min(self.end, self.start + pos);
+        assert!(pos <= self.char_count(), "RopeSlice::char_iter_at_index(): attempted to create iter starting beyond the end of the slice.");
+        
+        let a = self.start + pos;
         
         self.rope.char_iter_between_indices(a, self.end)
     }
     
     pub fn char_iter_between_indices(&self, pos_a: usize, pos_b: usize) -> RopeCharIter<'a> {
-        let a = min(self.end, self.start + pos_a);
-        let b = min(self.end, self.start + pos_b);
+        assert!(pos_a <= pos_b, "RopeSlice::char_iter_between_indices(): pos_a must be less than or equal to pos_b.");
+        assert!(pos_b <= self.char_count(), "RopeSlice::char_iter_between_indices(): attempted to create iter extending beyond the end of the slice.");
+        
+        let a = self.start + pos_a;
+        let b = self.start + pos_b;
         
         self.rope.char_iter_between_indices(a, b)
     }
@@ -1370,6 +1397,8 @@ impl<'a> RopeSlice<'a> {
     }
     
     pub fn grapheme_iter_at_index(&self, pos: usize) -> RopeGraphemeIter<'a> {
+        assert!(pos <= self.grapheme_count(), "RopeSlice::grapheme_iter_at_index(): attempted to create iter starting beyond the end of the slice.");
+        
         let gs = self.rope.char_index_to_grapheme_index(self.start);
         let ca = self.rope.grapheme_index_to_char_index(gs + pos);
         
@@ -1382,27 +1411,29 @@ impl<'a> RopeSlice<'a> {
     }
     
     pub fn grapheme_iter_between_indices(&self, pos_a: usize, pos_b: usize) -> RopeGraphemeIter<'a> {
-        assert!(pos_a <= pos_b);
+        assert!(pos_a <= pos_b, "RopeSlice::grapheme_iter_between_indices(): pos_a must be less than or equal to pos_b.");
+        assert!(pos_b <= self.grapheme_count(), "RopeSlice::grapheme_iter_between_indices(): attempted to create iter extending beyond the end of the slice.");
         
         let gs = self.rope.char_index_to_grapheme_index(self.start);
         let ca = self.rope.grapheme_index_to_char_index(gs + pos_a);
         let cb = self.rope.grapheme_index_to_char_index(gs + pos_b);
         
-        let a = min(self.end, max(self.start, ca));
-        let b = min(self.end, cb);
-        
-        let mut giter = self.rope.grapheme_iter_at_char_index(a);
-        giter.length = Some(b - a);
+        let mut giter = self.rope.grapheme_iter_at_char_index(ca);
+        giter.length = Some(cb - ca);
         
         return giter;
     }
     
     
     pub fn char_at_index(&self, index: usize) -> char {
+        assert!(index < self.char_count(), "RopeSlice::char_at_index(): attempted to index beyond the end of the slice.");
+        
         self.rope.char_at_index(self.start+index)
     }
     
     pub fn grapheme_at_index(&self, index: usize) -> &'a str {
+        assert!(index < self.grapheme_count(), "RopeSlice::grapheme_at_index(): attempted to index beyond the end of the slice.");
+        
         let gs = self.rope.char_index_to_grapheme_index(self.start);
         let gi = gs + index;
         let cs = self.rope.grapheme_index_to_char_index(gi);
@@ -1430,8 +1461,11 @@ impl<'a> RopeSlice<'a> {
     
     
     pub fn slice(&self, pos_a: usize, pos_b: usize) -> RopeSlice<'a> {
-        let a = min(self.end, self.start + pos_a);
-        let b = min(self.end, self.start + pos_b);
+        assert!(pos_a <= pos_b, "RopeSlice::slice(): pos_a must be less than or equal to pos_b.");
+        assert!(pos_b <= self.char_count(), "RopeSlice::slice(): attempted to create slice extending beyond the end of this slice.");
+        
+        let a = self.start + pos_a;
+        let b = self.start + pos_b;
         
         RopeSlice {
             rope: self.rope,

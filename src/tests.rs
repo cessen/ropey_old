@@ -2,6 +2,7 @@
 #![allow(unused_imports)]
 
 use std::iter;
+use string_utils::{remove_text_between_char_indices};
 use super::{Rope, RopeData, RopeGraphemeIter, MAX_NODE_SIZE};
 //use std::old_path::Path;
 //use std::old_io::fs::File;
@@ -1057,6 +1058,22 @@ fn insert_text_at_char_index_5() {
 
 
 #[test]
+fn insert_text_at_char_index_6() {
+    let mut s = String::from_utf8(vec!['c' as u8; (MAX_NODE_SIZE*47) - 1]).unwrap();
+    s.push_str("\u{000D}");
+    
+    let mut rope = Rope::from_str(&s[..]);
+    
+    s.push_str("\u{000A}");
+    rope.insert_text_at_char_index("\u{000A}", MAX_NODE_SIZE*47);
+    
+    assert_eq!(rope.to_string(), s);
+    assert_eq!(rope.grapheme_count(), MAX_NODE_SIZE * 47);
+    assert_eq!(rope.grapheme_at_index((MAX_NODE_SIZE * 47) - 1), "\u{000D}\u{000A}");
+}
+
+
+#[test]
 fn remove_text_between_char_indices_1() {
     let mut rope = Rope::from_str("Hello there!\u{000D}\u{000A}How are you?");
     
@@ -1083,6 +1100,24 @@ fn remove_text_between_char_indices_3() {
     rope.remove_text_between_char_indices(13, 14);
     
     assert_eq!(rope.to_string(), "Hello there!\u{000D}How are you?".to_string());
+}
+
+
+#[test]
+fn remove_text_between_char_indices_4() {
+    let mut s = String::from_utf8(vec!['c' as u8; (MAX_NODE_SIZE*27) - 1]).unwrap();
+    s.push_str("\u{000D}");
+    s.push_str("Hello there!\u{000A}How are you doing?");
+    
+    let mut rope = Rope::from_str(&s[..]);
+    
+    rope.remove_text_between_char_indices((MAX_NODE_SIZE*27), (MAX_NODE_SIZE*27)+12);
+    
+    remove_text_between_char_indices(&mut s, (MAX_NODE_SIZE*27), (MAX_NODE_SIZE*27)+12);
+    
+    assert_eq!(rope.to_string(), s);
+    assert_eq!(rope.grapheme_count(), (MAX_NODE_SIZE * 27) + 18);
+    assert_eq!(rope.grapheme_at_index((MAX_NODE_SIZE * 27) - 1), "\u{000D}\u{000A}");
 }
 
 

@@ -10,6 +10,19 @@ Ropey provides a unicode-aware implementation of mutable text ropes for Rust.  I
 
 ## Current Status
 
-Ropey currently meets two of the above goals: it is line aware and can handle manipulation of very large texts efficiently.
+Ropey currently meets all three goals for the most part, but there is still
+much work to be done:
 
-Its unicode support is not yet where it needs to be.  It currently only indexes by graphemes, and there are corner-cases even for graphemes that are not handled correctly yet.
+- You can convert an entire rope to a String, but you can't grab just part of
+  it as a String.
+- All the iterators are currently forward-only.  It would be great to make
+  them bi-directional.
+- The code could be cleaner and better organized.
+- The leaf nodes of the rope can potentially get badly fragmented by certain
+  operations.  This probably isn't a huge problem in practice, but it would
+  nevertheless be good to improve the code to reduce this.
+- There is lots of optimization potential!  Much of the code currently does
+  a lot of redundant work, simply because it was the easiest way to code it.
+  But now that everything appears to be working correctly and has lots of
+  unit tests, it would be good to go back and start improving the code for
+  performance.

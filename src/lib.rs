@@ -40,7 +40,7 @@ pub struct Rope {
     data: RopeData,
     char_count_: usize,
     grapheme_count_: usize,
-    line_ending_count: usize,
+    line_ending_count_: usize,
     tree_height: u32,
 }
 
@@ -59,7 +59,7 @@ impl Rope {
             data: RopeData::Leaf(String::new()),
             char_count_: 0,
             grapheme_count_: 0,
-            line_ending_count: 0,
+            line_ending_count_: 0,
             tree_height: 1,
         }
     }
@@ -97,7 +97,7 @@ impl Rope {
                 data: RopeData::Leaf(String::from_str(chunk)),
                 char_count_: c_count,
                 grapheme_count_: g_count,
-                line_ending_count: le_count,
+                line_ending_count_: le_count,
                 tree_height: 1,
             });
             
@@ -108,14 +108,14 @@ impl Rope {
                     let right = Box::new(rope_stack.pop().unwrap());
                     let left = Box::new(rope_stack.pop().unwrap());
                     let h = max(left.tree_height, right.tree_height) + 1;
-                    let lc = left.line_ending_count + right.line_ending_count;
+                    let lc = left.line_ending_count_ + right.line_ending_count_;
                     let gc = left.grapheme_count_ + right.grapheme_count_;
                     let cc = left.char_count_ + right.char_count_;
                     rope_stack.push(Rope {
                         data: RopeData::Branch(left, right),
                         char_count_: cc,
                         grapheme_count_: gc,
-                        line_ending_count: lc,
+                        line_ending_count_: lc,
                         tree_height: h,
                     });
                 }
@@ -159,8 +159,8 @@ impl Rope {
         return self.grapheme_count_;
     }
     
-    pub fn line_count(&self) -> usize {
-        return self.line_ending_count + 1;
+    pub fn line_ending_count(&self) -> usize {
+        return self.line_ending_count_;
     }
     
     
@@ -251,7 +251,7 @@ impl Rope {
                     return left.char_index_to_line_index(pos);
                 }
                 else {
-                    return right.char_index_to_line_index(pos - left.char_count_) + left.line_ending_count;
+                    return right.char_index_to_line_index(pos - left.char_count_) + left.line_ending_count_;
                 }
             },
         }
@@ -261,7 +261,7 @@ impl Rope {
     /// Returns the char index at the start of the given line index.
     pub fn line_index_to_char_index(&self, li: usize) -> usize {
         // Bounds check
-        if li > self.line_ending_count {
+        if li > self.line_ending_count_ {
             panic!("Rope::line_index_to_char_index: line index is out of bounds.");
         }
         
@@ -288,11 +288,11 @@ impl Rope {
             },
             
             RopeData::Branch(ref left, ref right) => {
-                if li <= left.line_ending_count {
+                if li <= left.line_ending_count_ {
                     return left.line_index_to_char_index(li);
                 }
                 else {
-                    return right.line_index_to_char_index(li - left.line_ending_count) + left.char_count_;
+                    return right.line_index_to_char_index(li - left.line_ending_count_) + left.char_count_;
                 }
             },
         }
@@ -463,26 +463,9 @@ impl Rope {
     /// Appends another rope to the end of this one, consuming the other rope.
     /// Runs in O(log N) time.
     pub fn append(&mut self, rope: Rope) {
-        if self.grapheme_count_ == 0 {
-            let mut r = rope;
-            mem::swap(self, &mut r);
-        }
-        else if rope.grapheme_count_ == 0 {
-            return;
-        }
-        else if self.tree_height > rope.tree_height {
-            let cc = self.char_count_;
-            self.append_right(rope);
-            self.repair_grapheme_seam(cc);
-        }
-        else {
-            let cc = self.char_count_;
-            let mut rope = rope;
-            mem::swap(self, &mut rope);
-            self.append_left(rope);
-            self.repair_grapheme_seam(cc);
-        }
-        
+        let cc = self.char_count_;
+        self.append_without_seam_check(rope);
+        self.repair_grapheme_seam(cc);
     }    
     
     
@@ -650,7 +633,7 @@ impl Rope {
     fn to_graphviz_recursive(&self, text: &mut String, name: String) {
         match self.data {
             RopeData::Leaf(_) => {
-                text.push_str(format!("{} [label=\"cc={}\\ngc={}\\nlec={}\"];\n", name, self.char_count_, self.grapheme_count_, self.line_ending_count).as_slice());
+                text.push_str(format!("{} [label=\"cc={}\\ngc={}\\nlec={}\"];\n", name, self.char_count_, self.grapheme_count_, self.line_ending_count_).as_slice());
             },
             
             RopeData::Branch(ref left, ref right) => {
@@ -658,7 +641,7 @@ impl Rope {
                 let mut rname = name.clone();
                 lname.push('l');
                 rname.push('r');
-                text.push_str(format!("{} [shape=box, label=\"h={}\\ncc={}\\ngc={}\\nlec={}\"];\n", name, self.tree_height, self.char_count_, self.grapheme_count_, self.line_ending_count).as_slice());
+                text.push_str(format!("{} [shape=box, label=\"h={}\\ncc={}\\ngc={}\\nlec={}\"];\n", name, self.tree_height, self.char_count_, self.grapheme_count_, self.line_ending_count_).as_slice());
                 text.push_str(format!("{} -> {{ {} {} }};\n", name, lname, rname).as_slice());
                 left.to_graphviz_recursive(text, lname);
                 right.to_graphviz_recursive(text, rname);
@@ -684,14 +667,14 @@ impl Rope {
                 let (cc, gc, lec) = char_grapheme_line_ending_count(text);
                 self.char_count_ = cc;
                 self.grapheme_count_ = gc;
-                self.line_ending_count = lec;
+                self.line_ending_count_ = lec;
                 self.tree_height = 1;
             },
             
             RopeData::Branch(ref left, ref right) => {
                 self.char_count_ = left.char_count_ + right.char_count_;
                 self.grapheme_count_ = left.grapheme_count_ + right.grapheme_count_;
-                self.line_ending_count = left.line_ending_count + right.line_ending_count;
+                self.line_ending_count_ = left.line_ending_count_ + right.line_ending_count_;
                 self.tree_height = max(left.tree_height, right.tree_height) + 1;
             }
         }
@@ -708,9 +691,9 @@ impl Rope {
                 let mut new_rope_r = Rope::from_string(r_text);
                 
                 // Append the nodes to their respective sides
-                left.append_right(new_rope_l);
+                left.append_without_seam_check(new_rope_l);
                 mem::swap(right, &mut new_rope_r);
-                right.append_left(new_rope_r);
+                right.append_without_seam_check(new_rope_r);
             },
             
             RopeData::Branch(ref mut left_b, ref mut right_b) => {
@@ -723,7 +706,7 @@ impl Rope {
                 if pos < l.char_count_ {
                     // Append the right split to the right side
                     mem::swap(right, &mut r);
-                    right.append_left(r);
+                    right.append_without_seam_check(r);
                     
                     // Recurse
                     if let RopeData::Branch(_, ref mut new_left) = left.data {
@@ -747,7 +730,7 @@ impl Rope {
                 else {
                     // Append the left split to the left side
                     let new_pos = pos - l.char_count_;
-                    left.append_right(l);
+                    left.append_without_seam_check(l);
                     
                     // Recurse
                     if let RopeData::Branch(_, ref mut new_left) = left.data {
@@ -774,6 +757,25 @@ impl Rope {
         left.rebalance();
         right.rebalance();
     }
+    
+    
+    fn append_without_seam_check(&mut self, rope: Rope) {
+        if self.grapheme_count_ == 0 {
+            let mut r = rope;
+            mem::swap(self, &mut r);
+        }
+        else if rope.grapheme_count_ == 0 {
+            return;
+        }
+        else if self.tree_height > rope.tree_height {
+            self.append_right(rope);
+        }
+        else {
+            let mut rope = rope;
+            mem::swap(self, &mut rope);
+            self.append_left(rope);
+        }
+    }  
     
     
     fn append_right(&mut self, rope: Rope) {
@@ -1296,12 +1298,12 @@ impl<'a> Iterator for RopeLineIter<'a> {
     type Item = RopeSlice<'a>;
 
     fn next(&mut self) -> Option<RopeSlice<'a>> {
-        if self.li >= self.rope.line_count() {
+        if self.li > self.rope.line_ending_count() {
             return None;
         }
         else {
             let a = self.rope.line_index_to_char_index(self.li);
-            let b = if self.li+1 < self.rope.line_count() {
+            let b = if self.li < self.rope.line_ending_count() {
                 self.rope.line_index_to_char_index(self.li+1)
             }
             else {

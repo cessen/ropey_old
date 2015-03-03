@@ -16,7 +16,7 @@ fn new_1() {
     
     assert_eq!(rope.char_count(), 0);
     assert_eq!(rope.grapheme_count(), 0);
-    assert_eq!(rope.line_count(), 1);
+    assert_eq!(rope.line_ending_count(), 0);
     
     assert_eq!(None, iter.next());
 }
@@ -29,7 +29,7 @@ fn new_2() {
     
     assert_eq!(rope.char_count(), 12);
     assert_eq!(rope.grapheme_count(), 12);
-    assert_eq!(rope.line_count(), 1);
+    assert_eq!(rope.line_ending_count(), 0);
     
     assert_eq!(Some("H"), iter.next());
     assert_eq!(Some("e"), iter.next());
@@ -55,7 +55,7 @@ fn new_3() {
     
     assert_eq!(rope.char_count(), 12);
     assert_eq!(rope.grapheme_count(), 12);
-    assert_eq!(rope.line_count(), 1);
+    assert_eq!(rope.line_ending_count(), 0);
     
     assert_eq!(Some("H"), iter.next());
     assert_eq!(Some("e"), iter.next());
@@ -79,7 +79,7 @@ fn new_4() {
     
     assert_eq!(rope.char_count(), 1 + MAX_NODE_SIZE * 53);
     assert_eq!(rope.grapheme_count(), 1 + MAX_NODE_SIZE * 53);
-    assert_eq!(rope.line_count(), 1);
+    assert_eq!(rope.line_ending_count(), 0);
     
     assert!(rope.is_balanced());
 }
@@ -91,7 +91,7 @@ fn counts() {
     
     assert_eq!(rope.char_count(), 13);
     assert_eq!(rope.grapheme_count(), 12);
-    assert_eq!(rope.line_count(), 2);
+    assert_eq!(rope.line_ending_count(), 1);
     assert_eq!(rope.grapheme_count_in_char_range(0, 13), 12);
 }
 
@@ -120,7 +120,7 @@ fn char_at_index() {
     
     assert_eq!(rope.char_count(), 15);
     assert_eq!(rope.grapheme_count(), 14);
-    assert_eq!(rope.line_count(), 2);
+    assert_eq!(rope.line_ending_count(), 1);
     
     assert_eq!('H', rope.char_at_index(0));
     assert_eq!('界', rope.char_at_index(4));
@@ -137,7 +137,7 @@ fn grapheme_at_index() {
     
     assert_eq!(rope.char_count(), 15);
     assert_eq!(rope.grapheme_count(), 14);
-    assert_eq!(rope.line_count(), 2);
+    assert_eq!(rope.line_ending_count(), 1);
     
     assert_eq!("H", rope.grapheme_at_index(0));
     assert_eq!("界", rope.grapheme_at_index(4));
@@ -1154,7 +1154,7 @@ fn insert_text_in_non_empty_buffer_1() {
     
     assert!(rope.is_balanced());
     assert_eq!(rope.grapheme_count(), 17);
-    assert_eq!(rope.line_count(), 3);
+    assert_eq!(rope.line_ending_count(), 2);
     assert!(Some("A") == iter.next());
     assert!(Some("g") == iter.next());
     assert!(Some("a") == iter.next());
@@ -1186,7 +1186,7 @@ fn insert_text_in_non_empty_buffer_2() {
     
     assert!(rope.is_balanced());
     assert_eq!(rope.grapheme_count(), 17);
-    assert_eq!(rope.line_count(), 3);
+    assert_eq!(rope.line_ending_count(), 2);
     assert!(Some("H") == iter.next());
     assert!(Some("e") == iter.next());
     assert!(Some("l") == iter.next());
@@ -1218,7 +1218,7 @@ fn insert_text_in_non_empty_buffer_3() {
     
     assert!(rope.is_balanced());
     assert_eq!(rope.grapheme_count(), 16);
-    assert_eq!(rope.line_count(), 3);
+    assert_eq!(rope.line_ending_count(), 2);
     assert!(Some("H") == iter.next());
     assert!(Some("e") == iter.next());
     assert!(Some("l") == iter.next());
@@ -1249,7 +1249,7 @@ fn insert_text_in_non_empty_buffer_4() {
     
     assert!(rope.is_balanced());
     assert_eq!(rope.grapheme_count(), 16);
-    assert_eq!(rope.line_count(), 3);
+    assert_eq!(rope.line_ending_count(), 2);
     assert!(Some("H") == iter.next());
     assert!(Some("e") == iter.next());
     assert!(Some("l") == iter.next());
@@ -1280,7 +1280,7 @@ fn insert_text_in_non_empty_buffer_5() {
     
     assert!(rope.is_balanced());
     assert_eq!(rope.grapheme_count(), 16);
-    assert_eq!(rope.line_count(), 3);
+    assert_eq!(rope.line_ending_count(), 2);
     assert!(Some("H") == iter.next());
     assert!(Some("e") == iter.next());
     assert!(Some("a") == iter.next());
@@ -1312,7 +1312,7 @@ fn insert_text_in_non_empty_buffer_6() {
     
     assert!(rope.is_balanced());
     assert_eq!(rope.grapheme_count(), 16);
-    assert_eq!(rope.line_count(), 3);
+    assert_eq!(rope.line_ending_count(), 2);
     assert!(Some("H") == iter.next());
     assert!(Some("e") == iter.next());
     assert!(Some("l") == iter.next());
@@ -1344,7 +1344,7 @@ fn insert_text_in_non_empty_buffer_7() {
     
     assert!(rope.is_balanced());
     assert_eq!(rope.grapheme_count(), 20);
-    assert_eq!(rope.line_count(), 7);
+    assert_eq!(rope.line_ending_count(), 6);
     assert!(Some("H") == iter.next());
     assert!(Some("e") == iter.next());
     assert!(Some("\n") == iter.next());
@@ -1380,7 +1380,7 @@ fn remove_text_1() {
     
     assert!(rope.is_balanced());
     assert_eq!(rope.grapheme_count(), 26);
-    assert_eq!(rope.line_count(), 5);
+    assert_eq!(rope.line_ending_count(), 4);
     assert!(Some("t") == iter.next());
     assert!(Some("h") == iter.next());
     assert!(Some("e") == iter.next());
@@ -1421,7 +1421,7 @@ fn remove_text_2() {
     
     assert!(rope.is_balanced());
     assert_eq!(rope.grapheme_count(), 17);
-    assert_eq!(rope.line_count(), 4);
+    assert_eq!(rope.line_ending_count(), 3);
     assert!(Some("p") == iter.next());
     assert!(Some("l") == iter.next());
     assert!(Some("e") == iter.next());
@@ -1453,7 +1453,7 @@ fn remove_text_3() {
     
     assert!(rope.is_balanced());
     assert_eq!(rope.grapheme_count(), 17);
-    assert_eq!(rope.line_count(), 4);
+    assert_eq!(rope.line_ending_count(), 3);
     assert!(Some("H") == iter.next());
     assert!(Some("i") == iter.next());
     assert!(Some("\n") == iter.next());
@@ -1485,7 +1485,7 @@ fn remove_text_4() {
     
     assert!(rope.is_balanced());
     assert_eq!(rope.grapheme_count(), 23);
-    assert_eq!(rope.line_count(), 6);
+    assert_eq!(rope.line_ending_count(), 5);
     assert!(Some("H") == iter.next());
     assert!(Some("i") == iter.next());
     assert!(Some("\n") == iter.next());
@@ -1523,7 +1523,7 @@ fn remove_text_5() {
     
     assert!(rope.is_balanced());
     assert_eq!(rope.grapheme_count(), 17);
-    assert_eq!(rope.line_count(), 4);
+    assert_eq!(rope.line_ending_count(), 3);
     assert!(Some("H") == iter.next());
     assert!(Some("i") == iter.next());
     assert!(Some("\n") == iter.next());
@@ -1555,7 +1555,7 @@ fn remove_text_6() {
     
     assert!(rope.is_balanced());
     assert_eq!(rope.grapheme_count(), 3);
-    assert_eq!(rope.line_count(), 1);
+    assert_eq!(rope.line_ending_count(), 0);
     assert!(Some("H") == iter.next());
     assert!(Some("e") == iter.next());
     assert!(Some("l") == iter.next());
@@ -1573,7 +1573,7 @@ fn remove_text_7() {
     
     assert!(rope.is_balanced());
     assert_eq!(rope.grapheme_count(), 5);
-    assert_eq!(rope.line_count(), 2);
+    assert_eq!(rope.line_ending_count(), 1);
     assert!(Some("H") == iter.next());
     assert!(Some("i") == iter.next());
     assert!(Some("\n") == iter.next());
@@ -1593,7 +1593,7 @@ fn remove_text_8() {
     
     assert!(rope.is_balanced());
     assert_eq!(rope.grapheme_count(), 4);
-    assert_eq!(rope.line_count(), 1);
+    assert_eq!(rope.line_ending_count(), 0);
     assert!(Some("H") == iter.next());
     assert!(Some("e") == iter.next());
     assert!(Some("l") == iter.next());
@@ -1612,7 +1612,7 @@ fn remove_text_9() {
     
     assert!(rope.is_balanced());
     assert_eq!(rope.grapheme_count(), 8);
-    assert_eq!(rope.line_count(), 2);
+    assert_eq!(rope.line_ending_count(), 1);
     assert!(Some("H") == iter.next());
     assert!(Some("e") == iter.next());
     assert!(Some("l") == iter.next());
@@ -1635,7 +1635,7 @@ fn remove_text_10() {
     
     assert!(rope.is_balanced());
     assert_eq!(rope.grapheme_count(), 4);
-    assert_eq!(rope.line_count(), 2);
+    assert_eq!(rope.line_ending_count(), 1);
     assert!(Some("1") == iter.next());
     assert!(Some("2") == iter.next());
     assert!(Some("\n") == iter.next());
@@ -1654,7 +1654,7 @@ fn remove_text_11() {
     
     assert!(rope.is_balanced());
     assert_eq!(rope.grapheme_count(), 9);
-    assert_eq!(rope.line_count(), 1);
+    assert_eq!(rope.line_ending_count(), 0);
     assert!(Some("1") == iter.next());
     assert!(Some("2") == iter.next());
     assert!(Some("3") == iter.next());
@@ -1677,7 +1677,7 @@ fn rebalance_1() {
         data: RopeData::Branch(Box::new(left), Box::new(right)),
         char_count_: 0,
         grapheme_count_: 0,
-        line_ending_count: 0,
+        line_ending_count_: 0,
         tree_height: 1,
     };
     rope.update_stats();
@@ -1703,7 +1703,7 @@ fn rebalance_2() {
         data: RopeData::Branch(Box::new(left), Box::new(right)),
         char_count_: 0,
         grapheme_count_: 0,
-        line_ending_count: 0,
+        line_ending_count_: 0,
         tree_height: 1,
     };
     rope.update_stats();
@@ -1729,7 +1729,7 @@ fn rebalance_3() {
         data: RopeData::Branch(Box::new(left), Box::new(right)),
         char_count_: 0,
         grapheme_count_: 0,
-        line_ending_count: 0,
+        line_ending_count_: 0,
         tree_height: 1,
     };
     rope.update_stats();
@@ -1755,7 +1755,7 @@ fn rebalance_4() {
         data: RopeData::Branch(Box::new(left), Box::new(right)),
         char_count_: 0,
         grapheme_count_: 0,
-        line_ending_count: 0,
+        line_ending_count_: 0,
         tree_height: 1,
     };
     rope.update_stats();

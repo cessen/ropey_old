@@ -206,6 +206,10 @@ impl Rope {
     
     /// Returns the beginning char index of the given grapheme index.
     pub fn grapheme_index_to_char_index(&self, pos: usize) -> usize {
+        if pos > self.grapheme_count_ {
+            panic!("grapheme_index_to_char_index(): grapheme position off the end of the rope.");
+        }
+        
         match self.data {
             RopeData::Leaf(ref text) => {
                 return grapheme_pos_to_char_pos(text, pos);

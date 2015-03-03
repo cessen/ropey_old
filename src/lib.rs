@@ -17,6 +17,7 @@ use string_utils::{
     char_count,
     char_grapheme_line_ending_count,
     grapheme_count_is_less_than,
+    char_pos_to_byte_pos,
     char_pos_to_grapheme_pos,
     grapheme_pos_to_char_pos,
     insert_text_at_char_index,
@@ -514,13 +515,13 @@ impl Rope {
     
     /// Creates a chunk iterator for the rope
     pub fn chunk_iter<'a>(&'a self) -> RopeChunkIter<'a> {
-        self.chunk_iter_at_index(0).1
+        self.chunk_iter_at_char_index(0).1
     }
     
     
     /// Creates a chunk iter starting at the chunk containing the given
     /// char index.  Returns the chunk and its starting char index.
-    pub fn chunk_iter_at_index<'a>(&'a self, index: usize) -> (usize, RopeChunkIter<'a>) {
+    pub fn chunk_iter_at_char_index<'a>(&'a self, index: usize) -> (usize, RopeChunkIter<'a>) {
         let mut node_stack: Vec<&'a Rope> = Vec::new();
         let mut cur_node = self;
         let mut char_i = index;
@@ -558,7 +559,7 @@ impl Rope {
     
     /// Creates an iterator starting at the given char index
     pub fn char_iter_at_index<'a>(&'a self, index: usize) -> RopeCharIter<'a> {
-        let (char_i, mut chunk_iter) = self.chunk_iter_at_index(index);
+        let (char_i, mut chunk_iter) = self.chunk_iter_at_char_index(index);
         
         // Create the char iter for the current node
         let mut citer = if let Some(text) = chunk_iter.next() {
@@ -598,34 +599,17 @@ impl Rope {
     
     /// Creates an iterator at the given grapheme index
     pub fn grapheme_iter_at_index<'a>(&'a self, index: usize) -> RopeGraphemeIter<'a> {
-        let (grapheme_i, mut chunk_iter) = self.chunk_iter_at_index(index);
-        
-        // Create the grapheme iter for the current node
-        let mut giter = if let Some(text) = chunk_iter.next() {
-            text.as_slice().graphemes(true)
-        }
-        else {
-            unreachable!()
-        };
-        
-        // Get to the right spot in the iter
-        for _ in grapheme_i..index {
-            giter.next();
-        }
-        
-        // Create the rope grapheme iter
-        return RopeGraphemeIter {
-            chunk_iter: chunk_iter,
-            cur_chunk: giter,
-            length: None,
-        };
+        let cindex = self.grapheme_index_to_char_index(index);
+        return self.grapheme_iter_at_char_index(cindex);
     }
     
     
     /// Creates an iterator that starts a pos_a and stops just before pos_b.
     pub fn grapheme_iter_between_indices<'a>(&'a self, pos_a: usize, pos_b: usize) -> RopeGraphemeIter<'a> {
         let mut iter = self.grapheme_iter_at_index(pos_a);
-        iter.length = Some(pos_b - pos_a);
+        let cpos_a = self.grapheme_index_to_char_index(pos_a);
+        let cpos_b = self.grapheme_index_to_char_index(pos_b);
+        iter.length = Some(cpos_b - cpos_a);
         return iter;
     }
     
@@ -1020,6 +1004,37 @@ impl Rope {
     }
     
     
+    /// Creates a grapheme iterator startin at the given char index.
+    /// If the given char index starts in the middle of a grapheme,
+    /// the grapheme is split and the part of the grapheme after the
+    /// the char index is returned as the first grapheme.
+    fn grapheme_iter_at_char_index<'a>(&'a self, index: usize) -> RopeGraphemeIter<'a> {
+        let (char_i, mut chunk_iter) = self.chunk_iter_at_char_index(index);
+        
+        // Get the chunk string
+        if let Some(text) = chunk_iter.next() {
+            // Create the grapheme iter for the current node
+            let byte_i = char_pos_to_byte_pos(text, index - char_i);
+            let giter = (&text[byte_i..]).graphemes(true);
+            
+            // Create the rope grapheme iter
+            return RopeGraphemeIter {
+                chunk_iter: chunk_iter,
+                cur_chunk: giter,
+                length: None,
+            };
+        }
+        else {
+            // No chunks, which means no text
+            return RopeGraphemeIter {
+                chunk_iter: chunk_iter,
+                cur_chunk: "".graphemes(true),
+                length: None,
+            };
+        };
+    }
+    
+    
     /// Tests if the rope adheres to the AVL balancing invariants.
     fn is_balanced(&self) -> bool {
         match self.data {
@@ -1130,7 +1145,7 @@ impl<'a> Iterator for RopeCharIter<'a> {
 pub struct RopeGraphemeIter<'a> {
     chunk_iter: RopeChunkIter<'a>,
     cur_chunk: Graphemes<'a>,
-    length: Option<usize>,
+    length: Option<usize>, // Length in chars, not graphemes
 }
 
 
@@ -1147,9 +1162,20 @@ impl<'a> Iterator for RopeGraphemeIter<'a> {
         loop {
             if let Some(g) = self.cur_chunk.next() {
                 if let Some(ref mut l) = self.length {
-                    *l -= 1;
+                    let cc = char_count(g);
+                    if *l >= cc {
+                        *l -= char_count(g);
+                        return Some(g);
+                    }
+                    else {
+                        let bc = char_pos_to_byte_pos(g, *l);
+                        *l = 0;
+                        return Some(&g[..bc]);
+                    }
                 }
-                return Some(g);
+                else {
+                    return Some(g);
+                }
             }
             else {   
                 if let Some(s) = self.chunk_iter.next() {
@@ -1191,11 +1217,7 @@ impl<'a> Iterator for RopeLineIter<'a> {
             
             self.li += 1;
             
-            // TODO: remove these conversions once slices work in terms
-            // of chars.
-            let ga = self.rope.char_index_to_grapheme_index(a);
-            let gb = self.rope.char_index_to_grapheme_index(b);
-            return Some(self.rope.slice(ga, gb));
+            return Some(self.rope.slice(a, b));
         }
     }
 }
@@ -1245,31 +1267,35 @@ impl<'a> RopeSlice<'a> {
     
     
     pub fn grapheme_iter(&self) -> RopeGraphemeIter<'a> {
-        // TODO: handle partially cut-off graphemes
-        let gs = self.rope.char_index_to_grapheme_index(self.start);
-        let ge = self.rope.char_index_to_grapheme_index(self.end);
-        self.rope.grapheme_iter_between_indices(gs, ge)
+        self.grapheme_iter_at_index(0)
     }
     
     pub fn grapheme_iter_at_index(&self, pos: usize) -> RopeGraphemeIter<'a> {
-        // TODO: handle partially cut-off graphemes
         let gs = self.rope.char_index_to_grapheme_index(self.start);
-        let ge = self.rope.char_index_to_grapheme_index(self.end);
+        let ca = self.rope.grapheme_index_to_char_index(gs + pos);
         
-        let a = min(ge, gs + pos);
+        let a = min(self.end, max(self.start, ca));
         
-        self.rope.grapheme_iter_between_indices(a, ge)
+        let mut giter = self.rope.grapheme_iter_at_char_index(a);
+        giter.length = Some(self.end - a);
+        
+        return giter;
     }
     
     pub fn grapheme_iter_between_indices(&self, pos_a: usize, pos_b: usize) -> RopeGraphemeIter<'a> {
-        // TODO: handle partially cut-off graphemes
+        assert!(pos_a <= pos_b);
+        
         let gs = self.rope.char_index_to_grapheme_index(self.start);
-        let ge = self.rope.char_index_to_grapheme_index(self.end);
+        let ca = self.rope.grapheme_index_to_char_index(gs + pos_a);
+        let cb = self.rope.grapheme_index_to_char_index(gs + pos_b);
         
-        let a = min(ge, gs + pos_a);
-        let b = min(ge, gs + pos_b);
+        let a = min(self.end, max(self.start, ca));
+        let b = min(self.end, cb);
         
-        self.rope.grapheme_iter_between_indices(a, b)
+        let mut giter = self.rope.grapheme_iter_at_char_index(a);
+        giter.length = Some(b - a);
+        
+        return giter;
     }
     
     
@@ -1278,9 +1304,29 @@ impl<'a> RopeSlice<'a> {
     }
     
     pub fn grapheme_at_index(&self, index: usize) -> &'a str {
-        // TODO: handle partially cut-off graphemes
         let gs = self.rope.char_index_to_grapheme_index(self.start);
-        self.rope.grapheme_at_index(gs+index)
+        let gi = gs + index;
+        let cs = self.rope.grapheme_index_to_char_index(gi);
+        let ce = self.rope.grapheme_index_to_char_index(gi+1);
+        
+        let g = self.rope.grapheme_at_index(gi);
+        
+        if cs >= self.start && ce <= self.end {
+            // Easy case
+            return g;
+        }
+        else {
+            // Hard case: partial graphemes
+            let shave_a = if cs < self.start { self.start - cs} else { 0 };
+            let shave_b = if ce > self.end { ce - self.end } else { 0 };
+            
+            let cc = char_count(g);
+            
+            let a = char_pos_to_byte_pos(g, shave_a);
+            let b = char_pos_to_byte_pos(g, cc - shave_b);
+            
+            return &g[a..b];
+        }
     }
     
     

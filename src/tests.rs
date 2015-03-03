@@ -223,21 +223,21 @@ fn grapheme_iter_1() {
     
     let mut iter = rope.grapheme_iter();
     
-    assert!(Some("H") == iter.next());
-    assert!(Some("e") == iter.next());
-    assert!(Some("l") == iter.next());
-    assert!(Some("世") == iter.next());
-    assert!(Some("界") == iter.next());
-    assert!(Some("l") == iter.next());
-    assert!(Some("o") == iter.next());
-    assert!(Some("\u{000D}\u{000A}") == iter.next());
-    assert!(Some("w") == iter.next());
-    assert!(Some("o") == iter.next());
-    assert!(Some("r") == iter.next());
-    assert!(Some("l") == iter.next());
-    assert!(Some("d") == iter.next());
-    assert!(Some("!") == iter.next());
-    assert!(None == iter.next());
+    assert_eq!(Some("H"), iter.next());
+    assert_eq!(Some("e"), iter.next());
+    assert_eq!(Some("l"), iter.next());
+    assert_eq!(Some("世"), iter.next());
+    assert_eq!(Some("界"), iter.next());
+    assert_eq!(Some("l"), iter.next());
+    assert_eq!(Some("o"), iter.next());
+    assert_eq!(Some("\u{000D}\u{000A}"), iter.next());
+    assert_eq!(Some("w"), iter.next());
+    assert_eq!(Some("o"), iter.next());
+    assert_eq!(Some("r"), iter.next());
+    assert_eq!(Some("l"), iter.next());
+    assert_eq!(Some("d"), iter.next());
+    assert_eq!(Some("!"), iter.next());
+    assert_eq!(None, iter.next());
 }
 
 
@@ -247,14 +247,14 @@ fn grapheme_iter_2() {
     
     let mut iter = rope.grapheme_iter_at_index(7);
     
-    assert!(Some("\u{000D}\u{000A}") == iter.next());
-    assert!(Some("w") == iter.next());
-    assert!(Some("o") == iter.next());
-    assert!(Some("r") == iter.next());
-    assert!(Some("l") == iter.next());
-    assert!(Some("d") == iter.next());
-    assert!(Some("!") == iter.next());
-    assert!(None == iter.next());
+    assert_eq!(Some("\u{000D}\u{000A}"), iter.next());
+    assert_eq!(Some("w"), iter.next());
+    assert_eq!(Some("o"), iter.next());
+    assert_eq!(Some("r"), iter.next());
+    assert_eq!(Some("l"), iter.next());
+    assert_eq!(Some("d"), iter.next());
+    assert_eq!(Some("!"), iter.next());
+    assert_eq!(None, iter.next());
 }
 
 
@@ -264,13 +264,13 @@ fn grapheme_iter_3() {
     
     let mut iter = rope.grapheme_iter_at_index(8);
     
-    assert!(Some("w") == iter.next());
-    assert!(Some("o") == iter.next());
-    assert!(Some("r") == iter.next());
-    assert!(Some("l") == iter.next());
-    assert!(Some("d") == iter.next());
-    assert!(Some("!") == iter.next());
-    assert!(None == iter.next());
+    assert_eq!(Some("w"), iter.next());
+    assert_eq!(Some("o"), iter.next());
+    assert_eq!(Some("r"), iter.next());
+    assert_eq!(Some("l"), iter.next());
+    assert_eq!(Some("d"), iter.next());
+    assert_eq!(Some("!"), iter.next());
+    assert_eq!(None, iter.next());
 }
 
 
@@ -280,10 +280,10 @@ fn grapheme_iter_4() {
     
     let mut iter = rope.grapheme_iter_between_indices(8, 11);
     
-    assert!(Some("w") == iter.next());
-    assert!(Some("o") == iter.next());
-    assert!(Some("r") == iter.next());
-    assert!(None == iter.next());
+    assert_eq!(Some("w"), iter.next());
+    assert_eq!(Some("o"), iter.next());
+    assert_eq!(Some("r"), iter.next());
+    assert_eq!(None, iter.next());
 }
 
 
@@ -523,45 +523,45 @@ fn slice_9() {
     
     let mut iter = s.grapheme_iter();
     
-    assert!(Some("H") == iter.next());
-    assert!(Some("e") == iter.next());
-    assert!(Some("l") == iter.next());
-    assert!(Some("l") == iter.next());
-    assert!(Some("o") == iter.next());
-    assert!(Some(" ") == iter.next());
-    assert!(Some("e") == iter.next());
-    assert!(Some("v") == iter.next());
-    assert!(Some("e") == iter.next());
-    assert!(Some("r") == iter.next());
-    assert!(Some("y") == iter.next());
-    assert!(Some("o") == iter.next());
-    assert!(Some("n") == iter.next());
-    assert!(Some("e") == iter.next());
-    assert!(Some("!") == iter.next());
-    assert!(Some("\u{000D}\u{000A}") == iter.next());
-    assert!(Some("H") == iter.next());
-    assert!(Some("o") == iter.next());
-    assert!(Some("w") == iter.next());
-    assert!(Some(" ") == iter.next());
-    assert!(Some("a") == iter.next());
-    assert!(Some("r") == iter.next());
-    assert!(Some("e") == iter.next());
-    assert!(Some(" ") == iter.next());
-    assert!(Some("y") == iter.next());
-    assert!(Some("o") == iter.next());
-    assert!(Some("u") == iter.next());
-    assert!(Some(" ") == iter.next());
-    assert!(Some("d") == iter.next());
-    assert!(Some("o") == iter.next());
-    assert!(Some("i") == iter.next());
-    assert!(Some("n") == iter.next());
-    assert!(Some("g") == iter.next());
-    assert!(Some(",") == iter.next());
-    assert!(Some(" ") == iter.next());
-    assert!(Some("e") == iter.next());
-    assert!(Some("h") == iter.next());
-    assert!(Some("?") == iter.next());
-    assert!(None == iter.next());
+    assert_eq!(Some("H"), iter.next());
+    assert_eq!(Some("e"), iter.next());
+    assert_eq!(Some("l"), iter.next());
+    assert_eq!(Some("l"), iter.next());
+    assert_eq!(Some("o"), iter.next());
+    assert_eq!(Some(" "), iter.next());
+    assert_eq!(Some("e"), iter.next());
+    assert_eq!(Some("v"), iter.next());
+    assert_eq!(Some("e"), iter.next());
+    assert_eq!(Some("r"), iter.next());
+    assert_eq!(Some("y"), iter.next());
+    assert_eq!(Some("o"), iter.next());
+    assert_eq!(Some("n"), iter.next());
+    assert_eq!(Some("e"), iter.next());
+    assert_eq!(Some("!"), iter.next());
+    assert_eq!(Some("\u{000D}\u{000A}"), iter.next());
+    assert_eq!(Some("H"), iter.next());
+    assert_eq!(Some("o"), iter.next());
+    assert_eq!(Some("w"), iter.next());
+    assert_eq!(Some(" "), iter.next());
+    assert_eq!(Some("a"), iter.next());
+    assert_eq!(Some("r"), iter.next());
+    assert_eq!(Some("e"), iter.next());
+    assert_eq!(Some(" "), iter.next());
+    assert_eq!(Some("y"), iter.next());
+    assert_eq!(Some("o"), iter.next());
+    assert_eq!(Some("u"), iter.next());
+    assert_eq!(Some(" "), iter.next());
+    assert_eq!(Some("d"), iter.next());
+    assert_eq!(Some("o"), iter.next());
+    assert_eq!(Some("i"), iter.next());
+    assert_eq!(Some("n"), iter.next());
+    assert_eq!(Some("g"), iter.next());
+    assert_eq!(Some(","), iter.next());
+    assert_eq!(Some(" "), iter.next());
+    assert_eq!(Some("e"), iter.next());
+    assert_eq!(Some("h"), iter.next());
+    assert_eq!(Some("?"), iter.next());
+    assert_eq!(None, iter.next());
 }
 
 
@@ -572,29 +572,29 @@ fn slice_10() {
     
     let mut iter = s.grapheme_iter_at_index(16);
     
-    assert!(Some("H") == iter.next());
-    assert!(Some("o") == iter.next());
-    assert!(Some("w") == iter.next());
-    assert!(Some(" ") == iter.next());
-    assert!(Some("a") == iter.next());
-    assert!(Some("r") == iter.next());
-    assert!(Some("e") == iter.next());
-    assert!(Some(" ") == iter.next());
-    assert!(Some("y") == iter.next());
-    assert!(Some("o") == iter.next());
-    assert!(Some("u") == iter.next());
-    assert!(Some(" ") == iter.next());
-    assert!(Some("d") == iter.next());
-    assert!(Some("o") == iter.next());
-    assert!(Some("i") == iter.next());
-    assert!(Some("n") == iter.next());
-    assert!(Some("g") == iter.next());
-    assert!(Some(",") == iter.next());
-    assert!(Some(" ") == iter.next());
-    assert!(Some("e") == iter.next());
-    assert!(Some("h") == iter.next());
-    assert!(Some("?") == iter.next());
-    assert!(None == iter.next());
+    assert_eq!(Some("H"), iter.next());
+    assert_eq!(Some("o"), iter.next());
+    assert_eq!(Some("w"), iter.next());
+    assert_eq!(Some(" "), iter.next());
+    assert_eq!(Some("a"), iter.next());
+    assert_eq!(Some("r"), iter.next());
+    assert_eq!(Some("e"), iter.next());
+    assert_eq!(Some(" "), iter.next());
+    assert_eq!(Some("y"), iter.next());
+    assert_eq!(Some("o"), iter.next());
+    assert_eq!(Some("u"), iter.next());
+    assert_eq!(Some(" "), iter.next());
+    assert_eq!(Some("d"), iter.next());
+    assert_eq!(Some("o"), iter.next());
+    assert_eq!(Some("i"), iter.next());
+    assert_eq!(Some("n"), iter.next());
+    assert_eq!(Some("g"), iter.next());
+    assert_eq!(Some(","), iter.next());
+    assert_eq!(Some(" "), iter.next());
+    assert_eq!(Some("e"), iter.next());
+    assert_eq!(Some("h"), iter.next());
+    assert_eq!(Some("?"), iter.next());
+    assert_eq!(None, iter.next());
 }
 
 
@@ -605,29 +605,29 @@ fn slice_11() {
     
     let mut iter = s.grapheme_iter_at_index(0);
     
-    assert!(Some("H") == iter.next());
-    assert!(Some("o") == iter.next());
-    assert!(Some("w") == iter.next());
-    assert!(Some(" ") == iter.next());
-    assert!(Some("a") == iter.next());
-    assert!(Some("r") == iter.next());
-    assert!(Some("e") == iter.next());
-    assert!(Some(" ") == iter.next());
-    assert!(Some("y") == iter.next());
-    assert!(Some("o") == iter.next());
-    assert!(Some("u") == iter.next());
-    assert!(Some(" ") == iter.next());
-    assert!(Some("d") == iter.next());
-    assert!(Some("o") == iter.next());
-    assert!(Some("i") == iter.next());
-    assert!(Some("n") == iter.next());
-    assert!(Some("g") == iter.next());
-    assert!(Some(",") == iter.next());
-    assert!(Some(" ") == iter.next());
-    assert!(Some("e") == iter.next());
-    assert!(Some("h") == iter.next());
-    assert!(Some("?") == iter.next());
-    assert!(None == iter.next());
+    assert_eq!(Some("H"), iter.next());
+    assert_eq!(Some("o"), iter.next());
+    assert_eq!(Some("w"), iter.next());
+    assert_eq!(Some(" "), iter.next());
+    assert_eq!(Some("a"), iter.next());
+    assert_eq!(Some("r"), iter.next());
+    assert_eq!(Some("e"), iter.next());
+    assert_eq!(Some(" "), iter.next());
+    assert_eq!(Some("y"), iter.next());
+    assert_eq!(Some("o"), iter.next());
+    assert_eq!(Some("u"), iter.next());
+    assert_eq!(Some(" "), iter.next());
+    assert_eq!(Some("d"), iter.next());
+    assert_eq!(Some("o"), iter.next());
+    assert_eq!(Some("i"), iter.next());
+    assert_eq!(Some("n"), iter.next());
+    assert_eq!(Some("g"), iter.next());
+    assert_eq!(Some(","), iter.next());
+    assert_eq!(Some(" "), iter.next());
+    assert_eq!(Some("e"), iter.next());
+    assert_eq!(Some("h"), iter.next());
+    assert_eq!(Some("?"), iter.next());
+    assert_eq!(None, iter.next());
 }
 
 
@@ -638,13 +638,92 @@ fn slice_12() {
     
     let mut iter = s.grapheme_iter_between_indices(6, 12);
     
-    assert!(Some("o") == iter.next());
-    assert!(Some("n") == iter.next());
-    assert!(Some("e") == iter.next());
-    assert!(Some("!") == iter.next());
-    assert!(Some("\u{000D}\u{000A}") == iter.next());
-    assert!(Some("H") == iter.next());
-    assert!(None == iter.next());
+    assert_eq!(Some("o"), iter.next());
+    assert_eq!(Some("n"), iter.next());
+    assert_eq!(Some("e"), iter.next());
+    assert_eq!(Some("!"), iter.next());
+    assert_eq!(Some("\u{000D}\u{000A}"), iter.next());
+    assert_eq!(Some("H"), iter.next());
+    assert_eq!(None, iter.next());
+}
+
+
+#[test]
+fn slice_13() {
+    let rope = Rope::from_str("Hello everyone!\u{000D}\u{000A}How are you doing, eh?");
+    let s = rope.slice(16, 39);
+    
+    let mut iter = s.grapheme_iter_at_index(0);
+    
+    assert_eq!(Some("\u{000A}"), iter.next());
+    assert_eq!(Some("H"), iter.next());
+    assert_eq!(Some("o"), iter.next());
+    assert_eq!(Some("w"), iter.next());
+    assert_eq!(Some(" "), iter.next());
+    assert_eq!(Some("a"), iter.next());
+    assert_eq!(Some("r"), iter.next());
+    assert_eq!(Some("e"), iter.next());
+    assert_eq!(Some(" "), iter.next());
+    assert_eq!(Some("y"), iter.next());
+    assert_eq!(Some("o"), iter.next());
+    assert_eq!(Some("u"), iter.next());
+    assert_eq!(Some(" "), iter.next());
+    assert_eq!(Some("d"), iter.next());
+    assert_eq!(Some("o"), iter.next());
+    assert_eq!(Some("i"), iter.next());
+    assert_eq!(Some("n"), iter.next());
+    assert_eq!(Some("g"), iter.next());
+    assert_eq!(Some(","), iter.next());
+    assert_eq!(Some(" "), iter.next());
+    assert_eq!(Some("e"), iter.next());
+    assert_eq!(Some("h"), iter.next());
+    assert_eq!(Some("?"), iter.next());
+    assert_eq!(None, iter.next());
+}
+
+
+#[test]
+fn slice_14() {
+    let rope = Rope::from_str("Hello everyone!\u{000D}\u{000A}How are you doing, eh?");
+    let s = rope.slice(0, 16);
+    
+    let mut iter = s.grapheme_iter_at_index(0);
+    
+    assert_eq!(Some("H"), iter.next());
+    assert_eq!(Some("e"), iter.next());
+    assert_eq!(Some("l"), iter.next());
+    assert_eq!(Some("l"), iter.next());
+    assert_eq!(Some("o"), iter.next());
+    assert_eq!(Some(" "), iter.next());
+    assert_eq!(Some("e"), iter.next());
+    assert_eq!(Some("v"), iter.next());
+    assert_eq!(Some("e"), iter.next());
+    assert_eq!(Some("r"), iter.next());
+    assert_eq!(Some("y"), iter.next());
+    assert_eq!(Some("o"), iter.next());
+    assert_eq!(Some("n"), iter.next());
+    assert_eq!(Some("e"), iter.next());
+    assert_eq!(Some("!"), iter.next());
+    assert_eq!(Some("\u{000D}"), iter.next());
+    assert_eq!(None, iter.next());
+}
+
+
+#[test]
+fn slice_15() {
+    let rope = Rope::from_str("Hello everyone!\u{000D}\u{000A}How are you doing, eh?");
+    let s = rope.slice(16, 39);
+    
+    assert_eq!("\u{000A}", s.grapheme_at_index(0));
+}
+
+
+#[test]
+fn slice_16() {
+    let rope = Rope::from_str("Hello everyone!\u{000D}\u{000A}How are you doing, eh?");
+    let s = rope.slice(0, 16);
+    
+    assert_eq!("\u{000D}", s.grapheme_at_index(15));
 }
 
 

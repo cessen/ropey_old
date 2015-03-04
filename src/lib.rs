@@ -29,7 +29,7 @@ use string_utils::{
 };
 
 
-pub const MIN_NODE_SIZE: usize = 1;
+pub const MIN_NODE_SIZE: usize = 64;
 pub const MAX_NODE_SIZE: usize = MIN_NODE_SIZE * 2;
 
 
@@ -365,73 +365,13 @@ impl Rope {
     /// sub-linearly, at least.
     pub fn insert_text_at_char_index(&mut self, text: &str, pos: usize) {
         assert!(pos <= self.char_count(), "Rope::insert_text_at_char_index(): attempted to insert text at a position beyond the end of the text.");
-        
-        let cc = self.char_count_; // Store the char count prior to the insertion
-        
-        let mut leaf_insert = false;
-        
-        match self.data {
-            // Find node for text to be inserted into
-            RopeData::Branch(ref mut left, ref mut right) => {
-                if pos < left.char_count_ {
-                    left.insert_text_at_char_index(text, pos);
-                }
-                else {
-                    right.insert_text_at_char_index(text, pos - left.char_count_);
-                }
-            },
-            
-            // Insert the text
-            RopeData::Leaf(ref mut s_text) => {
-                if grapheme_count_is_less_than(text, MAX_NODE_SIZE - self.grapheme_count_) {
-                    // Simple case
-                    insert_text_at_char_index(s_text, text, pos);
-                }
-                else {
-                    // Special cases
-                    leaf_insert = true;
-                }
-            },
-        }
-        
-        // The special cases of inserting at a leaf node.
-        // These have to be done outside of the match statement because
-        // of the borrow checker, but logically they take place in the
-        // RopeData::Leaf branch of the match statement above.
-        if leaf_insert {
-            // TODO: these special cases are currently prone to causing leaf
-            // fragmentation.  Find ways to reduce that.
-            if pos == 0 {
-                let mut new_rope = Rope::new();
-                mem::swap(self, &mut new_rope);
-                self.data = RopeData::Branch(Box::new(Rope::from_str(text)), Box::new(new_rope));
-            }
-            else if pos == self.char_count_ {
-                let mut new_rope = Rope::new();
-                mem::swap(self, &mut new_rope);
-                self.data = RopeData::Branch(Box::new(new_rope), Box::new(Rope::from_str(text)));
-            }
-            else {
-                // Split the leaf node at the insertion point
-                let mut node_l = Rope::new();
-                let node_r = self.split_at_char_index(pos);
-                mem::swap(self, &mut node_l);
-                
-                // Set the inserted text as the main node
-                *self = Rope::from_str(text);
-                
-                // Append the left and right split nodes to either side of
-                // the main node.
-                self.append_left(node_l);
-                self.append_right(node_r);
-            }
-        }
-        
-        self.update_stats();
-        self.rebalance();
+    
+        // Insert text    
+        let cc = self.char_count_;
+        self.insert_text_at_char_index_without_seam_check(text, pos);
+        let cc2 = self.char_count_;
         
         // Repair possible grapheme seams
-        let cc2 = self.char_count_;
         self.repair_grapheme_seam(pos);
         self.repair_grapheme_seam(pos + cc2 - cc);
     }
@@ -827,6 +767,76 @@ impl Rope {
         }
         else if let RopeData::Branch(ref mut left, _) = self.data {
             left.append_left(rope);
+        }
+        
+        self.update_stats();
+        self.rebalance();
+    }
+    
+    
+    /// Inserts the given text at the given char index.
+    /// This is done without a seam check because it is recursive and
+    /// would otherwise do a seam check at every recursive function call.
+    /// Rope::insert_text_at_char_index() calls this, and then does the seam
+    /// checks afterwards.
+    fn insert_text_at_char_index_without_seam_check(&mut self, text: &str, pos: usize) {
+        let mut leaf_insert = false;
+        
+        match self.data {
+            // Find node for text to be inserted into
+            RopeData::Branch(ref mut left, ref mut right) => {
+                if pos < left.char_count_ {
+                    left.insert_text_at_char_index(text, pos);
+                }
+                else {
+                    right.insert_text_at_char_index(text, pos - left.char_count_);
+                }
+            },
+            
+            // Insert the text
+            RopeData::Leaf(ref mut s_text) => {
+                if grapheme_count_is_less_than(text, MAX_NODE_SIZE - self.grapheme_count_) {
+                    // Simple case
+                    insert_text_at_char_index(s_text, text, pos);
+                }
+                else {
+                    // Special cases
+                    leaf_insert = true;
+                }
+            },
+        }
+        
+        // The special cases of inserting at a leaf node.
+        // These have to be done outside of the match statement because
+        // of the borrow checker, but logically they take place in the
+        // RopeData::Leaf branch of the match statement above.
+        if leaf_insert {
+            // TODO: these special cases are currently prone to causing leaf
+            // fragmentation.  Find ways to reduce that.
+            if pos == 0 {
+                let mut new_rope = Rope::new();
+                mem::swap(self, &mut new_rope);
+                self.data = RopeData::Branch(Box::new(Rope::from_str(text)), Box::new(new_rope));
+            }
+            else if pos == self.char_count_ {
+                let mut new_rope = Rope::new();
+                mem::swap(self, &mut new_rope);
+                self.data = RopeData::Branch(Box::new(new_rope), Box::new(Rope::from_str(text)));
+            }
+            else {
+                // Split the leaf node at the insertion point
+                let mut node_l = Rope::new();
+                let node_r = self.split_at_char_index(pos);
+                mem::swap(self, &mut node_l);
+                
+                // Set the inserted text as the main node
+                *self = Rope::from_str(text);
+                
+                // Append the left and right split nodes to either side of
+                // the main node.
+                self.append_left(node_l);
+                self.append_right(node_r);
+            }
         }
         
         self.update_stats();

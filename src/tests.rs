@@ -49,7 +49,7 @@ fn new_2() {
 
 #[test]
 fn new_3() {
-    let s = String::from_str("Hello world!");
+    let s = "Hello world!".to_string();
     let rope = Rope::from_string(s);
     let mut iter = rope.grapheme_iter();
     
@@ -75,7 +75,7 @@ fn new_3() {
 
 #[test]
 fn new_4() {
-    let rope = Rope::from_str(String::from_utf8(vec!['c' as u8; 1 + MAX_NODE_SIZE * 53]).unwrap().as_slice());
+    let rope = Rope::from_str(&(String::from_utf8(vec!['c' as u8; 1 + MAX_NODE_SIZE * 53]).unwrap())[..]);
     
     assert_eq!(rope.char_count(), 1 + MAX_NODE_SIZE * 53);
     assert_eq!(rope.grapheme_count(), 1 + MAX_NODE_SIZE * 53);
@@ -831,7 +831,7 @@ fn to_string() {
     let rope = Rope::from_str("Hello there good people of the world!");
     let s = rope.to_string();
     
-    assert_eq!("Hello there good people of the world!", s.as_slice());
+    assert_eq!("Hello there good people of the world!", &s[..]);
 }
 
 
@@ -840,18 +840,18 @@ fn split_at_char_index_1() {
     let mut rope1 = Rope::from_str("Hello there good people of the world!");
     
     //let mut f1 = BufferedWriter::new(File::create(&Path::new("yar1.gv")).unwrap());
-    //f1.write_str(rope1.to_graphviz().as_slice());
+    //f1.write_str(&(rope1.to_graphviz())[..]);
             
     let rope2 = rope1.split_at_char_index(18);
 
     //let mut f2 = BufferedWriter::new(File::create(&Path::new("yar2.gv")).unwrap());
-    //f2.write_str(rope1.to_graphviz().as_slice());
-    //f2.write_str(rope2.to_graphviz().as_slice());
+    //f2.write_str(&(rope1.to_graphviz())[..]);
+    //f2.write_str(&(rope2.to_graphviz())[..]);
     
     assert!(rope1.is_balanced());
     assert!(rope2.is_balanced());
-    assert_eq!("Hello there good p", rope1.to_string().as_slice());
-    assert_eq!("eople of the world!", rope2.to_string().as_slice());
+    assert_eq!("Hello there good p", &(rope1.to_string())[..]);
+    assert_eq!("eople of the world!", &(rope2.to_string())[..]);
 }
 
 
@@ -860,18 +860,18 @@ fn split_at_char_index_2() {
     let mut rope1 = Rope::from_str("Hello there good people of the world!");
     
     //let mut f1 = BufferedWriter::new(File::create(&Path::new("yar1.gv")).unwrap());
-    //f1.write_str(rope1.to_graphviz().as_slice());
+    //f1.write_str(&(rope1.to_graphviz())[..]);
             
     let rope2 = rope1.split_at_char_index(31);
 
     //let mut f2 = BufferedWriter::new(File::create(&Path::new("yar2.gv")).unwrap());
-    //f2.write_str(rope1.to_graphviz().as_slice());
-    //f2.write_str(rope2.to_graphviz().as_slice());
+    //f2.write_str(&(rope1.to_graphviz())[..]);
+    //f2.write_str(&(rope2.to_graphviz())[..]);
     
     assert!(rope1.is_balanced());
     assert!(rope2.is_balanced());
-    assert_eq!("Hello there good people of the ", rope1.to_string().as_slice());
-    assert_eq!("world!", rope2.to_string().as_slice());
+    assert_eq!("Hello there good people of the ", &(rope1.to_string())[..]);
+    assert_eq!("world!", &(rope2.to_string())[..]);
 }
 
 
@@ -880,18 +880,18 @@ fn split_at_char_index_3() {
     let mut rope1 = Rope::from_str("Hello there good people of the world!");
     
     //let mut f1 = BufferedWriter::new(File::create(&Path::new("yar1.gv")).unwrap());
-    //f1.write_str(rope1.to_graphviz().as_slice());
+    //f1.write_str(&(rope1.to_graphviz())[..]);
             
     let rope2 = rope1.split_at_char_index(5);
 
     //let mut f2 = BufferedWriter::new(File::create(&Path::new("yar2.gv")).unwrap());
-    //f2.write_str(rope1.to_graphviz().as_slice());
-    //f2.write_str(rope2.to_graphviz().as_slice());
+    //f2.write_str(&(rope1.to_graphviz())[..]);
+    //f2.write_str(&(rope2.to_graphviz())[..]);
     
     assert!(rope1.is_balanced());
     assert!(rope2.is_balanced());
-    assert_eq!("Hello", rope1.to_string().as_slice());
-    assert_eq!(" there good people of the world!", rope2.to_string().as_slice());
+    assert_eq!("Hello", &(rope1.to_string())[..]);
+    assert_eq!(" there good people of the world!", &(rope2.to_string())[..]);
 }
 
 
@@ -902,8 +902,8 @@ fn split_at_char_index_4() {
     
     assert!(rope1.is_balanced());
     assert!(rope2.is_balanced());
-    assert_eq!("Hello there good people of the world!", rope1.to_string().as_slice());
-    assert_eq!("", rope2.to_string().as_slice());
+    assert_eq!("Hello there good people of the world!", &(rope1.to_string())[..]);
+    assert_eq!("", &(rope2.to_string())[..]);
 }
 
 
@@ -914,8 +914,8 @@ fn split_at_char_index_5() {
     
     assert!(rope1.is_balanced());
     assert!(rope2.is_balanced());
-    assert_eq!("", rope1.to_string().as_slice());
-    assert_eq!("Hello there good people of the world!", rope2.to_string().as_slice());
+    assert_eq!("", &(rope1.to_string())[..]);
+    assert_eq!("Hello there good people of the world!", &(rope2.to_string())[..]);
 }
 
 
@@ -926,8 +926,8 @@ fn split_at_char_index_6() {
     
     assert!(rope1.is_balanced());
     assert!(rope2.is_balanced());
-    assert_eq!("Hello there good\u{000D}", rope1.to_string().as_slice());
-    assert_eq!("\u{000A}people of the world!", rope2.to_string().as_slice());
+    assert_eq!("Hello there good\u{000D}", &(rope1.to_string())[..]);
+    assert_eq!("\u{000A}people of the world!", &(rope2.to_string())[..]);
 }
 
 
@@ -939,7 +939,7 @@ fn append_1() {
     rope1.append(rope2);
     
     assert!(rope1.is_balanced());
-    assert_eq!("Hello there good people of the world!", rope1.to_string().as_slice());
+    assert_eq!("Hello there good people of the world!", &(rope1.to_string())[..]);
 }
 
 
@@ -951,7 +951,7 @@ fn append_2() {
     rope1.append(rope2);
     
     assert!(rope1.is_balanced());
-    assert_eq!("Hello there good people of the world!", rope1.to_string().as_slice());
+    assert_eq!("Hello there good people of the world!", &(rope1.to_string())[..]);
 }
 
 
@@ -963,7 +963,7 @@ fn append_3() {
     rope1.append(rope2);
     
     assert!(rope1.is_balanced());
-    assert_eq!("Hello there good people of the world!", rope1.to_string().as_slice());
+    assert_eq!("Hello there good people of the world!", &(rope1.to_string())[..]);
 }
 
 
@@ -1670,8 +1670,8 @@ fn remove_text_11() {
 
 #[test]
 fn rebalance_1() {
-    let left = Rope::from_str(String::from_utf8(vec!['c' as u8; MAX_NODE_SIZE * 64]).unwrap().as_slice());
-    let right = Rope::from_str(String::from_utf8(vec!['c' as u8; MAX_NODE_SIZE * 1]).unwrap().as_slice());
+    let left = Rope::from_str(&(String::from_utf8(vec!['c' as u8; MAX_NODE_SIZE * 64]).unwrap())[..]);
+    let right = Rope::from_str(&(String::from_utf8(vec!['c' as u8; MAX_NODE_SIZE * 1]).unwrap())[..]);
     
     let mut rope = Rope {
         data: RopeData::Branch(Box::new(left), Box::new(right)),
@@ -1683,12 +1683,12 @@ fn rebalance_1() {
     rope.update_stats();
     
     //let mut f1 = BufferedWriter::new(File::create(&Path::new("yar1.gv")).unwrap());
-    //f1.write_str(rope.to_graphviz().as_slice());
+    //f1.write_str(&(rope.to_graphviz())[..]);
     
     rope.rebalance();
     
     //let mut f2 = BufferedWriter::new(File::create(&Path::new("yar2.gv")).unwrap());
-    //f2.write_str(rope.to_graphviz().as_slice());
+    //f2.write_str(&(rope.to_graphviz())[..]);
     
     assert!(rope.is_balanced());
 }
@@ -1696,8 +1696,8 @@ fn rebalance_1() {
 
 #[test]
 fn rebalance_2() {
-    let left = Rope::from_str(String::from_utf8(vec!['c' as u8; MAX_NODE_SIZE * 1]).unwrap().as_slice());
-    let right = Rope::from_str(String::from_utf8(vec!['c' as u8; MAX_NODE_SIZE * 64]).unwrap().as_slice());
+    let left = Rope::from_str(&(String::from_utf8(vec!['c' as u8; MAX_NODE_SIZE * 1]).unwrap())[..]);
+    let right = Rope::from_str(&(String::from_utf8(vec!['c' as u8; MAX_NODE_SIZE * 64]).unwrap())[..]);
     
     let mut rope = Rope {
         data: RopeData::Branch(Box::new(left), Box::new(right)),
@@ -1709,12 +1709,12 @@ fn rebalance_2() {
     rope.update_stats();
     
     //let mut f1 = BufferedWriter::new(File::create(&Path::new("yar1.gv")).unwrap());
-    //f1.write_str(rope.to_graphviz().as_slice());
+    //f1.write_str(&(rope.to_graphviz())[..]);
     
     rope.rebalance();
     
     //let mut f2 = BufferedWriter::new(File::create(&Path::new("yar2.gv")).unwrap());
-    //f2.write_str(rope.to_graphviz().as_slice());
+    //f2.write_str(&(rope.to_graphviz())[..]);
     
     assert!(rope.is_balanced());
 }
@@ -1722,8 +1722,8 @@ fn rebalance_2() {
 
 #[test]
 fn rebalance_3() {
-    let left = Rope::from_str(String::from_utf8(vec!['c' as u8; MAX_NODE_SIZE * 53]).unwrap().as_slice());
-    let right = Rope::from_str(String::from_utf8(vec!['c' as u8; MAX_NODE_SIZE * 1]).unwrap().as_slice());
+    let left = Rope::from_str(&(String::from_utf8(vec!['c' as u8; MAX_NODE_SIZE * 53]).unwrap())[..]);
+    let right = Rope::from_str(&(String::from_utf8(vec!['c' as u8; MAX_NODE_SIZE * 1]).unwrap())[..]);
     
     let mut rope = Rope {
         data: RopeData::Branch(Box::new(left), Box::new(right)),
@@ -1735,12 +1735,12 @@ fn rebalance_3() {
     rope.update_stats();
     
     //let mut f1 = BufferedWriter::new(File::create(&Path::new("yar1.gv")).unwrap());
-    //f1.write_str(rope.to_graphviz().as_slice());
+    //f1.write_str(&(rope.to_graphviz())[..]);
     
     rope.rebalance();
     
     //let mut f2 = BufferedWriter::new(File::create(&Path::new("yar2.gv")).unwrap());
-    //f2.write_str(rope.to_graphviz().as_slice());
+    //f2.write_str(&(rope.to_graphviz())[..]);
     
     assert!(rope.is_balanced());
 }
@@ -1748,8 +1748,8 @@ fn rebalance_3() {
 
 #[test]
 fn rebalance_4() {
-    let left = Rope::from_str(String::from_utf8(vec!['c' as u8; MAX_NODE_SIZE * 1]).unwrap().as_slice());
-    let right = Rope::from_str(String::from_utf8(vec!['c' as u8; MAX_NODE_SIZE * 53]).unwrap().as_slice());
+    let left = Rope::from_str(&(String::from_utf8(vec!['c' as u8; MAX_NODE_SIZE * 1]).unwrap())[..]);
+    let right = Rope::from_str(&(String::from_utf8(vec!['c' as u8; MAX_NODE_SIZE * 53]).unwrap())[..]);
     
     let mut rope = Rope {
         data: RopeData::Branch(Box::new(left), Box::new(right)),
@@ -1761,12 +1761,12 @@ fn rebalance_4() {
     rope.update_stats();
     
     //let mut f1 = BufferedWriter::new(File::create(&Path::new("yar1.gv")).unwrap());
-    //f1.write_str(rope.to_graphviz().as_slice());
+    //f1.write_str(&(rope.to_graphviz())[..]);
     
     rope.rebalance();
     
     //let mut f2 = BufferedWriter::new(File::create(&Path::new("yar2.gv")).unwrap());
-    //f2.write_str(rope.to_graphviz().as_slice());
+    //f2.write_str(&(rope.to_graphviz())[..]);
 
     assert!(rope.is_balanced());
 }

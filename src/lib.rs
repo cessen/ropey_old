@@ -1,10 +1,8 @@
 #![allow(dead_code)]
-#![feature(core)]
-#![feature(collections)]
-#![feature(unicode)]
-#![feature(test)]
+//#![feature(test)]
+//#![feature(unicode)]
 
-extern crate test;
+//extern crate test;
 
 mod string_utils;
 mod tests;
@@ -94,7 +92,7 @@ impl Rope {
             
             // Add chunk
             rope_stack.push(Rope {
-                data: RopeData::Leaf(String::from_str(chunk)),
+                data: RopeData::Leaf(chunk.to_string()),
                 char_count_: c_count,
                 grapheme_count_: g_count,
                 line_ending_count_: le_count,
@@ -148,7 +146,7 @@ impl Rope {
     /// Creates a new rope from a string, consuming the string
     pub fn from_string(s: String) -> Rope {
         // TODO: special case short strings?
-        Rope::from_str(s.as_slice())
+        Rope::from_str(&s[..])
     }
     
     pub fn char_count(&self) -> usize {
@@ -240,7 +238,7 @@ impl Rope {
             RopeData::Leaf(ref text) => {
                 let mut ci = 0;
                 let mut lei = 0;
-                for g in text.as_slice().graphemes(true) {
+                for g in (&text[..]).graphemes(true) {
                     if ci == pos {
                         break;
                     }
@@ -281,7 +279,7 @@ impl Rope {
             RopeData::Leaf(ref text) => {
                 let mut ci = 0;
                 let mut lei = 0;
-                for g in text.as_slice().graphemes(true) {
+                for g in (&text[..]).graphemes(true) {
                     ci += char_count(g);
                     if is_line_ending(g) {
                         lei += 1;
@@ -485,7 +483,7 @@ impl Rope {
         
         // Create the char iter for the current node
         let mut citer = if let Some(text) = chunk_iter.next() {
-            text.as_slice().chars()
+            (&text[..]).chars()
         }
         else {
             unreachable!()
@@ -584,8 +582,8 @@ impl Rope {
     // Creates a graphviz document of the Rope's structure, and returns
     // it as a string.  For debugging purposes.
     pub fn to_graphviz(&self) -> String {
-        let mut text = String::from_str("digraph {\n");
-        self.to_graphviz_recursive(&mut text, String::from_str("s"));
+        let mut text = "digraph {\n".to_string();
+        self.to_graphviz_recursive(&mut text, "s".to_string());
         text.push_str("}\n");
         return text;
     }
@@ -599,7 +597,7 @@ impl Rope {
     fn to_graphviz_recursive(&self, text: &mut String, name: String) {
         match self.data {
             RopeData::Leaf(_) => {
-                text.push_str(format!("{} [label=\"cc={}\\ngc={}\\nlec={}\"];\n", name, self.char_count_, self.grapheme_count_, self.line_ending_count_).as_slice());
+                text.push_str(&(format!("{} [label=\"cc={}\\ngc={}\\nlec={}\"];\n", name, self.char_count_, self.grapheme_count_, self.line_ending_count_))[..]);
             },
             
             RopeData::Branch(ref left, ref right) => {
@@ -607,8 +605,8 @@ impl Rope {
                 let mut rname = name.clone();
                 lname.push('l');
                 rname.push('r');
-                text.push_str(format!("{} [shape=box, label=\"h={}\\ncc={}\\ngc={}\\nlec={}\"];\n", name, self.tree_height, self.char_count_, self.grapheme_count_, self.line_ending_count_).as_slice());
-                text.push_str(format!("{} -> {{ {} {} }};\n", name, lname, rname).as_slice());
+                text.push_str(&(format!("{} [shape=box, label=\"h={}\\ncc={}\\ngc={}\\nlec={}\"];\n", name, self.tree_height, self.char_count_, self.grapheme_count_, self.line_ending_count_))[..]);
+                text.push_str(&(format!("{} -> {{ {} {} }};\n", name, lname, rname))[..]);
                 left.to_graphviz_recursive(text, lname);
                 right.to_graphviz_recursive(text, rname);
             }
@@ -935,7 +933,7 @@ impl Rope {
                     mem::swap(&mut merged_text, text);
                 }        
                 if let RopeData::Leaf(ref mut text) = right.data {
-                    merged_text.push_str(text.as_slice());
+                    merged_text.push_str(&text[..]);
                 }
             }
             
@@ -1220,7 +1218,7 @@ impl<'a> Iterator for RopeChunkIter<'a> {
             }
             
             if let RopeData::Leaf(ref text) = next_chunk.data {
-                return Some(text.as_slice());
+                return Some(&text[..]);
             }
             else {
                 unreachable!();

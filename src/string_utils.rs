@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 //! Misc helpful utility functions for TextBuffer related stuff.
 
+use std::str::CharIndices;
 use std::iter::repeat;
 
 
@@ -21,7 +22,7 @@ pub fn is_line_ending(text: &str) -> bool {
 
 pub fn line_ending_count(text: &str) -> usize {
     let mut count = 0;
-    for g in text.graphemes(true) {
+    for g in graphemes(text) {
         if is_line_ending(g) {
             count += 1;
         }
@@ -39,7 +40,7 @@ pub fn char_count(text: &str) -> usize {
 
 pub fn grapheme_count(text: &str) -> usize {
     let mut count = 0;
-    for _ in text.graphemes(true) {
+    for _ in graphemes(text) {
         count += 1;
     }
     return count;
@@ -47,7 +48,7 @@ pub fn grapheme_count(text: &str) -> usize {
 
 pub fn grapheme_count_is_less_than(text: &str, n: usize) -> bool {
     let mut count = 0;
-    for _ in text.graphemes(true) {
+    for _ in graphemes(text) {
         count += 1;
         if count >= n {
             return false;
@@ -62,7 +63,7 @@ pub fn char_grapheme_line_ending_count(text: &str) -> (usize, usize, usize) {
     let mut gc = 0;
     let mut lec = 0;
     
-    for g in text.graphemes(true) {
+    for g in graphemes(text) {
         cc += char_count(g);
         gc += 1;
         if is_line_ending(g) {
@@ -101,7 +102,7 @@ pub fn char_pos_to_byte_pos(text: &str, pos: usize) -> usize {
 pub fn grapheme_pos_to_byte_pos(text: &str, pos: usize) -> usize {
     let mut i: usize = 0;
     
-    for (offset, _) in text.grapheme_indices(true) {
+    for (offset, _) in grapheme_indices(text) {
         if i == pos {
             return offset;
         }
@@ -119,7 +120,7 @@ pub fn char_pos_to_grapheme_pos(text: &str, pos: usize) -> usize {
     let mut i = 0usize;
     let mut cc = 0usize;
     
-    for g in text.graphemes(true) {
+    for g in graphemes(text) {
         if cc == pos {
             return i;
         }
@@ -144,7 +145,7 @@ pub fn grapheme_pos_to_char_pos(text: &str, pos: usize) -> usize {
     let mut i = 0usize;
     let mut cc = 0usize;
     
-    for g in text.graphemes(true) {
+    for g in graphemes(text) {
         if i == pos {
             return cc;
         }
@@ -216,7 +217,7 @@ pub fn insert_text_at_grapheme_index(s: &mut String, text: &str, pos: usize) {
     // Copy new bytes in
     // TODO: use copy_memory()
     let mut i = byte_pos;
-    for g in text.graphemes(true) {
+    for g in graphemes(text) {
         
         for b in g.bytes() {
             byte_vec[i] = b;
@@ -327,6 +328,104 @@ pub fn split_string_at_grapheme_index(s1: &mut String, pos: usize) -> String {
     }
     
     return s2;
+}
+
+
+/// A grapheme iterator that only recognizes CRLF as a composite grapheme.
+/// This is only temporary, a stand-in for the proper Graphemes iterator
+/// from stdlib which is currently marked unstable and thus is unavailable
+/// in stable Rust builds.  When Graphemes makes its way back into stdlib
+/// or is split into another library, replace this with it.
+pub struct TempGraphemeIndices<'a> {
+    s: &'a str,
+    chars: CharIndices<'a>,
+    i1: usize,
+    i2: usize,
+}
+
+impl<'a> TempGraphemeIndices<'a> {
+    fn push_i2(&mut self) {
+        if let Some((i, _)) = self.chars.next() {
+            self.i2 = i;
+        }
+        else {
+            self.i2 = self.s.len();
+        }
+    }
+}
+
+impl<'a> Iterator for TempGraphemeIndices<'a> {
+    type Item = (usize, &'a str);
+    
+    fn next(&mut self) -> Option<(usize, &'a str)> {
+        // Advance the iterator
+        if self.i1 == self.i2 {
+            self.push_i2();
+        }
+    
+        // If we're at the end, we're done
+        if self.i1 == self.s.len() {
+            return None;
+        }
+    
+        
+        match &(self.s)[self.i1 .. self.i2] {
+            "\u{000D}" => {
+                let ii = self.i1;
+                let i3 = self.i2;
+                self.push_i2();
+                if &(self.s)[self.i1 .. self.i2] == "\u{000D}\u{000A}" {
+                    let s = &(self.s)[self.i1 .. self.i2];
+                    self.i1 = self.i2;
+                    return Some((ii, s));
+                }
+                else {
+                    let ii = self.i1;
+                    let s = &(self.s)[self.i1 .. i3];
+                    self.i1 = i3;
+                    return Some((ii, s));
+                }
+            },
+            
+            _ => {
+                let ii = self.i1;
+                let s = &(self.s)[self.i1 .. self.i2];
+                self.i1 = self.i2;
+                return Some((ii, s));
+            },
+        }
+    }
+}
+
+pub fn grapheme_indices<'a>(ss: &'a str) -> TempGraphemeIndices<'a> {
+    TempGraphemeIndices {
+        s: ss,
+        chars: ss.char_indices(),
+        i1: 0,
+        i2: 0,
+    }
+}
+
+
+pub struct TempGraphemes<'a> {
+    itr: TempGraphemeIndices<'a>,
+}
+
+impl<'a> Iterator for TempGraphemes<'a> {
+    type Item = &'a str;
+    
+    fn next(&mut self) -> Option<&'a str> {
+        match self.itr.next() {
+            Some((_, s)) => Some(s),
+            None => None,
+        }
+    }
+}
+
+pub fn graphemes<'a>(ss: &'a str) -> TempGraphemes<'a> {
+    TempGraphemes {
+        itr: grapheme_indices(ss),
+    }
 }
 
 

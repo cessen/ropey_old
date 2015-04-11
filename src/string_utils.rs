@@ -398,9 +398,12 @@ impl<'a> Iterator for TempGraphemeIndices<'a> {
 }
 
 pub fn grapheme_indices<'a>(ss: &'a str) -> TempGraphemeIndices<'a> {
+    let mut ci = ss.char_indices();
+    ci.next();
+    
     TempGraphemeIndices {
         s: ss,
-        chars: ss.char_indices(),
+        chars: ci,
         i1: 0,
         i2: 0,
     }
@@ -507,5 +510,43 @@ mod tests {
         let s = "";
         
         assert_eq!(grapheme_pos_to_char_pos(s, 0), 0);
+    }
+    
+    #[test]
+    fn grapheme_indices_1() {
+        let s = "abcd";
+        let mut itr = grapheme_indices(s);
+        
+        assert_eq!(Some((0, "a")), itr.next());
+        assert_eq!(Some((1, "b")), itr.next());
+        assert_eq!(Some((2, "c")), itr.next());
+        assert_eq!(Some((3, "d")), itr.next());
+        assert_eq!(None, itr.next());
+    }
+    
+    #[test]
+    fn grapheme_indices_2() {
+        let s = "ab\u{000D}\u{000A}cd";
+        let mut itr = grapheme_indices(s);
+        
+        assert_eq!(Some((0, "a")), itr.next());
+        assert_eq!(Some((1, "b")), itr.next());
+        assert_eq!(Some((2, "\u{000D}\u{000A}")), itr.next());
+        assert_eq!(Some((4, "c")), itr.next());
+        assert_eq!(Some((5, "d")), itr.next());
+        assert_eq!(None, itr.next());
+    }
+    
+    #[test]
+    fn grapheme_indices_3() {
+        let s = "ab\u{000D}cd";
+        let mut itr = grapheme_indices(s);
+        
+        assert_eq!(Some((0, "a")), itr.next());
+        assert_eq!(Some((1, "b")), itr.next());
+        assert_eq!(Some((2, "\u{000D}")), itr.next());
+        assert_eq!(Some((3, "c")), itr.next());
+        assert_eq!(Some((4, "d")), itr.next());
+        assert_eq!(None, itr.next());
     }
 }

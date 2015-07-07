@@ -3,6 +3,7 @@
 //#![feature(unicode)]
 
 //extern crate test;
+extern crate unicode_segmentation;
 
 mod string_utils;
 mod tests;
@@ -11,6 +12,7 @@ mod benches;
 use std::cmp::{min, max};
 use std::mem;
 use std::str::Chars;
+use unicode_segmentation::{UnicodeSegmentation, Graphemes};
 use string_utils::{
     char_count,
     char_grapheme_line_ending_count,
@@ -24,9 +26,6 @@ use string_utils::{
     split_string_at_char_index,
     split_string_at_grapheme_index,
     is_line_ending,
-    TempGraphemes,
-    graphemes,
-    grapheme_indices,
 };
 
 
@@ -77,7 +76,7 @@ impl Rope {
             let mut le_count = 0;
             let mut c_count = 0;
             let mut g_count = 0;
-            for (bi, g) in grapheme_indices(s1) {
+            for (bi, g) in UnicodeSegmentation::grapheme_indices(s1, true) {
                 byte_i = bi + g.len();
                 g_count += 1;
                 c_count += char_count(g);
@@ -241,7 +240,7 @@ impl Rope {
             RopeData::Leaf(ref text) => {
                 let mut ci = 0;
                 let mut lei = 0;
-                for g in graphemes(&text[..]) {
+                for g in UnicodeSegmentation::graphemes(&text[..], true) {
                     if ci == pos {
                         break;
                     }
@@ -282,7 +281,7 @@ impl Rope {
             RopeData::Leaf(ref text) => {
                 let mut ci = 0;
                 let mut lei = 0;
-                for g in graphemes(&text[..]) {
+                for g in UnicodeSegmentation::graphemes(&text[..], true) {
                     ci += char_count(g);
                     if is_line_ending(g) {
                         lei += 1;
@@ -339,7 +338,7 @@ impl Rope {
         match self.data {
             RopeData::Leaf(ref text) => {
                 let mut i: usize = 0;
-                for g in graphemes(text) {
+                for g in UnicodeSegmentation::graphemes(&text[..], true) {
                     if i == index {
                         return g;
                     }
@@ -1076,7 +1075,7 @@ impl Rope {
         if let Some(text) = chunk_iter.next() {
             // Create the grapheme iter for the current node
             let byte_i = char_pos_to_byte_pos(text, index - char_i);
-            let giter = graphemes(&text[byte_i..]);
+            let giter = UnicodeSegmentation::graphemes(&text[byte_i..], true);
             
             // Create the rope grapheme iter
             return RopeGraphemeIter {
@@ -1089,7 +1088,7 @@ impl Rope {
             // No chunks, which means no text
             return RopeGraphemeIter {
                 chunk_iter: chunk_iter,
-                cur_chunk: graphemes(""),
+                cur_chunk: UnicodeSegmentation::graphemes("", true),
                 length: None,
             };
         };
@@ -1276,7 +1275,7 @@ impl<'a> Iterator for RopeCharIter<'a> {
 /// An iterator over a rope's graphemes
 pub struct RopeGraphemeIter<'a> {
     chunk_iter: RopeChunkIter<'a>,
-    cur_chunk: TempGraphemes<'a>,
+    cur_chunk: Graphemes<'a>,
     length: Option<usize>, // Length in chars, not graphemes
 }
 
@@ -1311,7 +1310,7 @@ impl<'a> Iterator for RopeGraphemeIter<'a> {
             }
             else {   
                 if let Some(s) = self.chunk_iter.next() {
-                    self.cur_chunk = graphemes(s);
+                    self.cur_chunk = UnicodeSegmentation::graphemes(s, true);
                     continue;
                 }
                 else {

@@ -10,3 +10,6 @@ repository = "https://github.com/cessen/ropey"
 readme = "readme.md"
 license = "CC0-1.0"
 keywords = ["rope", "text"]
+
+[dependencies]
+unicode-segmentation = "0.1.*"

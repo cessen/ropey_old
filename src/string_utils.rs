@@ -3,6 +3,7 @@
 
 use std::str::CharIndices;
 use std::iter::repeat;
+use unicode_segmentation::UnicodeSegmentation;
 
 
 pub fn is_line_ending(text: &str) -> bool {
@@ -22,7 +23,7 @@ pub fn is_line_ending(text: &str) -> bool {
 
 pub fn line_ending_count(text: &str) -> usize {
     let mut count = 0;
-    for g in graphemes(text) {
+    for g in UnicodeSegmentation::graphemes(text, true) {
         if is_line_ending(g) {
             count += 1;
         }
@@ -40,7 +41,7 @@ pub fn char_count(text: &str) -> usize {
 
 pub fn grapheme_count(text: &str) -> usize {
     let mut count = 0;
-    for _ in graphemes(text) {
+    for _ in UnicodeSegmentation::graphemes(text, true) {
         count += 1;
     }
     return count;
@@ -48,7 +49,7 @@ pub fn grapheme_count(text: &str) -> usize {
 
 pub fn grapheme_count_is_less_than(text: &str, n: usize) -> bool {
     let mut count = 0;
-    for _ in graphemes(text) {
+    for _ in UnicodeSegmentation::graphemes(text, true) {
         count += 1;
         if count >= n {
             return false;
@@ -63,7 +64,7 @@ pub fn char_grapheme_line_ending_count(text: &str) -> (usize, usize, usize) {
     let mut gc = 0;
     let mut lec = 0;
     
-    for g in graphemes(text) {
+    for g in UnicodeSegmentation::graphemes(text, true) {
         cc += char_count(g);
         gc += 1;
         if is_line_ending(g) {
@@ -102,7 +103,7 @@ pub fn char_pos_to_byte_pos(text: &str, pos: usize) -> usize {
 pub fn grapheme_pos_to_byte_pos(text: &str, pos: usize) -> usize {
     let mut i: usize = 0;
     
-    for (offset, _) in grapheme_indices(text) {
+    for (offset, _) in UnicodeSegmentation::grapheme_indices(text, true) {
         if i == pos {
             return offset;
         }
@@ -120,7 +121,7 @@ pub fn char_pos_to_grapheme_pos(text: &str, pos: usize) -> usize {
     let mut i = 0usize;
     let mut cc = 0usize;
     
-    for g in graphemes(text) {
+    for g in UnicodeSegmentation::graphemes(text, true) {
         if cc == pos {
             return i;
         }
@@ -145,7 +146,7 @@ pub fn grapheme_pos_to_char_pos(text: &str, pos: usize) -> usize {
     let mut i = 0usize;
     let mut cc = 0usize;
     
-    for g in graphemes(text) {
+    for g in UnicodeSegmentation::graphemes(text, true) {
         if i == pos {
             return cc;
         }
@@ -217,7 +218,7 @@ pub fn insert_text_at_grapheme_index(s: &mut String, text: &str, pos: usize) {
     // Copy new bytes in
     // TODO: use copy_memory()
     let mut i = byte_pos;
-    for g in graphemes(text) {
+    for g in UnicodeSegmentation::graphemes(text, true) {
         
         for b in g.bytes() {
             byte_vec[i] = b;
@@ -397,40 +398,6 @@ impl<'a> Iterator for TempGraphemeIndices<'a> {
     }
 }
 
-pub fn grapheme_indices<'a>(ss: &'a str) -> TempGraphemeIndices<'a> {
-    let mut ci = ss.char_indices();
-    ci.next();
-    
-    TempGraphemeIndices {
-        s: ss,
-        chars: ci,
-        i1: 0,
-        i2: 0,
-    }
-}
-
-
-pub struct TempGraphemes<'a> {
-    itr: TempGraphemeIndices<'a>,
-}
-
-impl<'a> Iterator for TempGraphemes<'a> {
-    type Item = &'a str;
-    
-    fn next(&mut self) -> Option<&'a str> {
-        match self.itr.next() {
-            Some((_, s)) => Some(s),
-            None => None,
-        }
-    }
-}
-
-pub fn graphemes<'a>(ss: &'a str) -> TempGraphemes<'a> {
-    TempGraphemes {
-        itr: grapheme_indices(ss),
-    }
-}
-
 
 #[cfg(test)]
 mod tests {
@@ -510,43 +477,5 @@ mod tests {
         let s = "";
         
         assert_eq!(grapheme_pos_to_char_pos(s, 0), 0);
-    }
-    
-    #[test]
-    fn grapheme_indices_1() {
-        let s = "abcd";
-        let mut itr = grapheme_indices(s);
-        
-        assert_eq!(Some((0, "a")), itr.next());
-        assert_eq!(Some((1, "b")), itr.next());
-        assert_eq!(Some((2, "c")), itr.next());
-        assert_eq!(Some((3, "d")), itr.next());
-        assert_eq!(None, itr.next());
-    }
-    
-    #[test]
-    fn grapheme_indices_2() {
-        let s = "ab\u{000D}\u{000A}cd";
-        let mut itr = grapheme_indices(s);
-        
-        assert_eq!(Some((0, "a")), itr.next());
-        assert_eq!(Some((1, "b")), itr.next());
-        assert_eq!(Some((2, "\u{000D}\u{000A}")), itr.next());
-        assert_eq!(Some((4, "c")), itr.next());
-        assert_eq!(Some((5, "d")), itr.next());
-        assert_eq!(None, itr.next());
-    }
-    
-    #[test]
-    fn grapheme_indices_3() {
-        let s = "ab\u{000D}cd";
-        let mut itr = grapheme_indices(s);
-        
-        assert_eq!(Some((0, "a")), itr.next());
-        assert_eq!(Some((1, "b")), itr.next());
-        assert_eq!(Some((2, "\u{000D}")), itr.next());
-        assert_eq!(Some((3, "c")), itr.next());
-        assert_eq!(Some((4, "d")), itr.next());
-        assert_eq!(None, itr.next());
     }
 }

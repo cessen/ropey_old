@@ -26,8 +26,3 @@ much work to be done:
   But now that everything appears to be working correctly and has lots of
   unit tests, it would be good to go back and start improving the code for
   performance.
-- Grapheme support is extremely limited.  Currently CRLF is the only recognized
-  multi-codepoint grapheme recognized.  This is because Rust 1.0's stdlib
-  has Grapheme support marked as unstable, and thus is not available in
-  stable releases.  Whenever grapheme support is added back to stdlib, Ropey
-  will be updated to support it as well.

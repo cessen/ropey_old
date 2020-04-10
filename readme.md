@@ -1,3 +1,7 @@
+# Note
+
+This is the old implementation of Ropey.  The current implementation is at https://github.com/cessen/ropey
+
 # Ropey
 
 Ropey provides a unicode-aware implementation of mutable text ropes for Rust.  It does not currently provide the persistant data structure variant of ropes.  It is essentially intended as an alternative to Rust strings, where the contained text is expected to be large and frequently modified.
